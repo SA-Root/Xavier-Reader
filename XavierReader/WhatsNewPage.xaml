@@ -26,6 +26,7 @@
                     <TextBlock xml:space="preserve" Padding="10,10,10,10" FontSize="16" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch" TextWrapping="WrapWholeWords" 
                                VerticalAlignment="Stretch"
                                >Version 1.9.59:
+    Adjust to new CommandBar height
     Fixed view mode switching issues
                         
 Version 1.8.58:

@@ -34,7 +34,7 @@
         </Grid.RowDefinitions>
         <CommandBar x:Name="PrimaryCommandBar" Background="Transparent" DefaultLabelPosition="Right" ClosedDisplayMode="Compact" 
                     HorizontalAlignment="Center" 
-                    VerticalAlignment="Top" Height="40" 
+                    VerticalAlignment="Top" 
                     IsDynamicOverflowEnabled="True" 
                     OverflowButtonVisibility="Auto" 
                     Width="Auto" CornerRadius="2,2,2,2">
