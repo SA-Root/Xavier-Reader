@@ -1,0 +1,57 @@
+﻿<ContentDialog
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls" 
+    x:Class="XavierReader.SettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:XavierReader"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Global Settings"
+    PrimaryButtonText="Apply"
+    SecondaryButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
+    DefaultButton="Primary"
+    Background="{ThemeResource SystemControlAcrylicWindowBrush}"
+    HorizontalContentAlignment="Center" 
+    VerticalContentAlignment="Center" 
+    HorizontalAlignment="Center" 
+    VerticalAlignment="Center" 
+    CornerRadius="8,8,8,8" SizeChanged="ContentDialog_SizeChanged">
+    <ContentDialog.Resources>
+    </ContentDialog.Resources>
+    <Grid Width="Auto">
+        <ScrollViewer x:Name="ScrViewer"
+                      HorizontalScrollBarVisibility="Disabled" 
+                      VerticalScrollBarVisibility="Visible" 
+                      VerticalScrollMode="Enabled" 
+                      HorizontalScrollMode="Disabled" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center" 
+                      Width="550">
+            <ScrollViewer.Content>
+                <StackPanel Orientation="Vertical">
+                    <ToggleSwitch x:Name="isAcrylic" 
+                                  IsOn="{x:Bind TempGS.isAcrylicOn,Mode=TwoWay}" 
+                                  Header="Acrylic Background"/>
+                    <StackPanel Orientation="Vertical" Margin="0,10,0,0">
+                        <ToggleSwitch x:Name="isAutoDark"
+                                      IsOn="{x:Bind TempGS.isAutoDark,Mode=TwoWay}"
+                                      Header="Auto Dark Mode" Toggled="isAutoDark_Toggled"/>
+                        <TimePicker x:Name="AutoDarkStartTime" 
+                                    Header="Start time" 
+                                    MinuteIncrement="15" 
+                                    Margin="0,10,0,0" 
+                                    Time="{x:Bind TempGS.AutoDarkStartTime,Mode=TwoWay}" />
+                        <TimePicker x:Name="AutoDarkEndTime" Header="End time" 
+                                    MinuteIncrement="15" 
+                                    Margin="0,10,0,0" 
+                                    Time="{x:Bind TempGS.AutoDarkEndTime,Mode=TwoWay}" 
+                                    />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer.Content>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

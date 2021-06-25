@@ -1,0 +1,26 @@
+﻿<ContentDialog
+    x:Class="XavierReader.MessageDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:XavierReader"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Message"
+    DefaultButton="Primary"
+    PrimaryButtonText="OK"
+    CloseButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    CloseButtonClick="ContentDialog_CloseButtonClick"
+    Background="{ThemeResource SystemControlAcrylicWindowBrush}"
+    HorizontalContentAlignment="Center" 
+    VerticalContentAlignment="Center" 
+    HorizontalAlignment="Center" 
+    VerticalAlignment="Center" 
+    CornerRadius="8,8,8,8">
+    <Grid>
+        <TextBlock x:Name="MsgContent" FontSize="20">
+            
+        </TextBlock>
+    </Grid>
+</ContentDialog>

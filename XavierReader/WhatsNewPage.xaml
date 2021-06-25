@@ -1,0 +1,128 @@
+﻿<Page
+    x:Class="XavierReader.WhatsNewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:XavierReader"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:Custom="using:Microsoft.UI.Xaml.Controls"
+    >
+
+    <Grid Width="500">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical" Grid.Row="1">
+            <TextBlock FontSize="18" FontWeight="Bold">
+                Update history:
+            </TextBlock>
+            <ScrollViewer x:Name="ScrViewer" MinWidth="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" VerticalScrollMode="Enabled" HorizontalScrollMode="Disabled" Width="500" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ScrollViewer.Content>
+                    <TextBlock xml:space="preserve" Padding="10,10,10,10" FontSize="16" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch" TextWrapping="WrapWholeWords" 
+                               VerticalAlignment="Stretch"
+                               >Version 1.9.59:
+    Fixed view mode switching issues
+                        
+Version 1.8.58:
+    Update to WinUI 2.6 GA
+                        
+Version 1.8.55:
+    Visual Update
+
+Version 1.8.53:
+    Implemented filtering in Recent Books
+    Added progress display in Recent Books
+    Fixed several bugs
+
+Version 1.7.47:
+    Now respects dual view setting when opening a book
+    Solved last read time sorting issues
+                        
+Version 1.7.45:
+    Updated Nuget dependents
+                        
+Version 1.7.44:
+    Added time display
+    Added auto dark mode setting
+    Added recent page delete book confirmation dialog
+    Updated topbar info style
+                        
+Version 1.6.39:
+    Solved last read time record issues
+                        
+Version 1.6.38:
+    Added last reading time record
+    Added sidebar book info
+
+Version 1.5.34:
+    Solved Epub decoder issues
+                        
+Version 1.5.32:
+    Updated Epub decoder(now recognizes Italic,Bold,br,etc.)
+    Solved interactive issues
+                        
+Version 1.4.25:
+    Added setting page
+    Improved Fluent UI
+    Improved interactive logic
+    Improved history dialog UI
+    Improved dark mode UI
+                    
+Version 1.4.18:
+    Brings back single pane view
+    Improved progress display
+                    
+Version 1.3.16:
+    Solved interactive issues
+                    
+Version 1.3.15:
+    Solved resizing issues
+    Improved UI
+
+Version 1.2.12:
+    Optimized memory usage
+
+Version 1.2.11:
+    Solved a crash caused by resizing
+
+Version 1.2.10:
+    Added the ability to delete books from your bookshelf
+
+Version 1.1.9:
+    Fixed multiple books reading crash
+
+Version 1.1.7:
+    Solved Visual Assets display issues
+
+Version 1.1.6:
+    Added the ability to store your reading progress
+    Improved UI
+
+Version 1.0.5:
+    Solved UI issues
+
+Version 1.0.1:
+    Solved AppName display issues
+
+Version 1.0.0:
+    Finished design of main page layout
+                    </TextBlock>
+                </ScrollViewer.Content>
+            </ScrollViewer>
+
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <Custom:PersonPicture HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Initials="XR"/>
+            <TextBlock Text="{x:Bind Version,Mode=OneWay}" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Margin="15,0,0,0">
+
+            </TextBlock>
+        </StackPanel>
+
+    </Grid>
+</Page>
