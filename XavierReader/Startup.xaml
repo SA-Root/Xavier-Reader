@@ -9,6 +9,7 @@
     x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     RequestedTheme="Light" NavigationCacheMode="Disabled" Unloaded="Page_Unloaded">
     <Grid>
+
         <Grid.BackgroundTransition>
             <BrushTransition />
         </Grid.BackgroundTransition>

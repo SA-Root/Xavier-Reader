@@ -100,19 +100,18 @@ namespace XavierReader
             DeleteBooksButton.IsEnabled = false;
             if (ImageGrid.SelectionMode == ListViewSelectionMode.None)
             {
-                ImageGrid.Background = new SolidColorBrush(Color.FromArgb(255, 170, 170, 170));
+                ImageGridTop.Background = new SolidColorBrush(Color.FromArgb(255, 170, 170, 170));
                 ImageGrid.IsItemClickEnabled = false;
                 DeleteBooksButton.Visibility = Visibility.Visible;
                 ImageGrid.SelectionMode = ListViewSelectionMode.Multiple;
             }
             else
             {
-                ImageGrid.Background = null;
+                ImageGridTop.Background = null;
                 ImageGrid.SelectionMode = ListViewSelectionMode.None;
                 DeleteBooksButton.Visibility = Visibility.Collapsed;
                 ImageGrid.IsItemClickEnabled = true;
             }
-            
         }
         private async void DeleteBooksButton_Click(object sender, RoutedEventArgs e)
         {
