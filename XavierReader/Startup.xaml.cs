@@ -214,39 +214,52 @@ namespace XavierReader
         }
         private async void OpenButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new Windows.Storage.Pickers.FileOpenPicker();
-            picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.List;
-            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Downloads;
+            var picker = new Windows.Storage.Pickers.FileOpenPicker
+            {
+                ViewMode = Windows.Storage.Pickers.PickerViewMode.List,
+                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Downloads
+            };
             picker.FileTypeFilter.Add(".epub");
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                var dia = new Loading("Loading Book...", NightModeButton.IsChecked == true);
-                dia.ShowAsync();
-                IBuffer tmp = await FileIO.ReadBufferAsync(file);
-                StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
-                StorageFile newFile = await storageFolder.CreateFileAsync(file.Name, CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteBufferAsync(newFile, tmp);
-                CurrentBook = new XavierEpub();
-                CurrentBook.LoadBook(newFile);
-                CurrentBook.isTwo = SwitchViewButton.IsChecked == true;
-                var settings = ApplicationData.Current.LocalSettings;
-                if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
+                //var dia = new Loading("Loading Book...", NightModeButton.IsChecked == true);
+                //dia.ShowAsync();
+
+                var temp = new XavierEpubFile();
+                try
                 {
-                    settings.Values[CurrentBook.TmpFolderName + ".Chapters"] = CurrentBook.TotalChapters.ToString();
+                    await temp.LoadBook(file);
                 }
-                if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
+                catch (EpubExtractionFailureException)
                 {
-                    settings.Values[CurrentBook.TmpFolderName + ".Author"] = CurrentBook.Author;
+                    temp.CleanUp();
+                    //show err dialog
                 }
-                if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Author"))
+                catch (EpubContentLoadFailureException)
                 {
-                    settings.Values[CurrentBook.TmpFolderName + ".Rating"] = CurrentBook.Rate;
+                    temp.CleanUp();
+                    //show err dialog
                 }
-                EnableReadingControls();
-                UpdateSidebarInfo();
-                MainFrame.Navigate(typeof(MainPage), CurrentBook);
-                dia.Hide();
+
+                //CurrentBook.isTwo = SwitchViewButton.IsChecked == true;
+                //var settings = ApplicationData.Current.LocalSettings;
+                //if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
+                //{
+                //    settings.Values[CurrentBook.TmpFolderName + ".Chapters"] = CurrentBook.TotalChapters.ToString();
+                //}
+                //if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
+                //{
+                //    settings.Values[CurrentBook.TmpFolderName + ".Author"] = CurrentBook.Author;
+                //}
+                //if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Author"))
+                //{
+                //    settings.Values[CurrentBook.TmpFolderName + ".Rating"] = CurrentBook.Rate;
+                //}
+                //EnableReadingControls();
+                //UpdateSidebarInfo();
+                //MainFrame.Navigate(typeof(MainPage), CurrentBook);
+                //dia.Hide();
             }
         }
         private async void AboutButton_Click(object sender, RoutedEventArgs e)

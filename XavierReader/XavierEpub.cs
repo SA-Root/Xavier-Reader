@@ -23,6 +23,7 @@ using Windows.ApplicationModel.Activation;
 using System.Xml;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace XavierReader
 {
@@ -35,13 +36,13 @@ namespace XavierReader
         public string Rating { get; set; }
         public double Progress { get; set; }
     }
-    public enum Rating
+    public enum EpubRating
     {
-        PG = 0x1,
-        PG13 = 0x2,
-        R = 0x4,
-        NC17 = 0x8,
-        G = 0x10
+        PG = 0,
+        PG13 = 1,
+        R = 2,
+        NC17 = 3,
+        G = 4
     }
     public enum NodeType
     {
@@ -51,6 +52,12 @@ namespace XavierReader
         li = 0x8,
         i = 0x10,
         h = 0x20,
+    }
+    public enum EpubLoadMode
+    {
+        Full = 0,
+        PerChapter = 1,
+        Auto = 2
     }
     class XavierEpub
     {
@@ -447,6 +454,147 @@ namespace XavierReader
                 i.Clear();
             }
             BC2.Clear();
+        }
+    }
+    class XavierEpubFile
+    {
+        /// <summary>
+        /// Name of folder containing extracted epub content
+        /// </summary>
+        public string ContentFolder { get; set; }
+        /// <summary>
+        /// Path of local Epub copied from file system
+        /// </summary>
+        public string LocalEpub { get; set; }
+        /// <summary>
+        /// Path to the folder containing extracted epub content
+        /// </summary>
+        public string ExtractedPath { get; set; }
+        public string Author { get; set; }
+        public EpubRating Rating { get; set; }
+        public string Title { get; set; }
+        public uint ChapterCount { get; set; }
+        public DateTime LastUpdateTime { get; set; }
+        public bool DualPageView { get; set; }
+        /// <summary>
+        /// Path to the cover image file
+        /// </summary>
+        public string CoverImage { get; set; }
+        public XavierEpubFile()
+        {
+
+        }
+        /// <summary>
+        /// Clean up after exception thrown
+        /// </summary>
+        public void CleanUp()
+        {
+            Directory.Delete(ExtractedPath, true);
+            File.Delete(LocalEpub);
+        }
+        /// <summary>
+        /// Load new Epub file
+        /// </summary>
+        /// <param name="storageFile">Epub file selected by FilePicker</param>
+        /// <param name="loadMode">Specify epub file loading mode</param>
+        /// <exception cref="EpubExtractionFailureException"/>
+        /// <exception cref="EpubContentLoadFailureException"/>
+        public async Task<int> LoadBook(StorageFile storageFile, EpubLoadMode loadMode = EpubLoadMode.Full, bool multiThreadedTextLoading = false)
+        {
+            //copy to LocalState
+            var tmp = FileIO.ReadBufferAsync(storageFile);
+            var newFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(storageFile.Name, CreationCollisionOption.ReplaceExisting);
+            LocalEpub = newFile.Path;
+            await FileIO.WriteBufferAsync(newFile, await tmp);
+            //extract epub
+            ContentFolder = newFile.DisplayName;
+            ExtractedPath = ApplicationData.Current.LocalFolder.Path + "/tmp/" + ContentFolder;
+            try
+            {
+                //overwrite folder
+                if (Directory.Exists(ExtractedPath))
+                {
+                    Directory.Delete(ExtractedPath, true);
+                }
+                //extract epub
+                ZipFile.ExtractToDirectory(LocalEpub, ExtractedPath);
+            }
+            catch (Exception)
+            {
+                throw new EpubExtractionFailureException();
+            }
+            try
+            {
+                LoadBookInfo();
+            }
+            catch (EpubContentLoadFailureException)
+            {
+                throw;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// Get the *.opf file of the epub
+        /// </summary>
+        /// <returns>Path to *.opf</returns>
+        /// <exception cref="EpubContentLoadFailureException"/>
+        private string GetOpfFile()
+        {
+            try
+            {
+                var container = new XmlDocument();
+                container.Load(ExtractedPath + "/META-INF/container.xml");
+                var root = container.DocumentElement;
+                var nsmgr = new XmlNamespaceManager(container.NameTable);
+                nsmgr.AddNamespace("ns", root.NamespaceURI);
+                var rootfile = root.SelectSingleNode("//ns:rootfile", nsmgr);
+                return ExtractedPath + "/" + rootfile.Attributes["full-path"].Value;
+            }
+            catch (Exception)
+            {
+                throw new EpubContentLoadFailureException();
+            }
+        }
+        /// <summary>
+        /// Split title for HHr books
+        /// </summary>
+        /// <param name="title">Raw title</param>
+        private void SplitTitle(string title)
+        {
+
+        }
+        /// <summary>
+        /// Load book info(author, title, ...)
+        /// </summary>
+        /// <exception cref="EpubContentLoadFailureException"/>
+        public void LoadBookInfo()
+        {
+            try
+            {
+                var opfPath = GetOpfFile();
+                var opf = new XmlDocument();
+                opf.Load(opfPath);
+                var package = opf.DocumentElement;
+                var opfNsmgr = new XmlNamespaceManager(opf.NameTable);
+                opfNsmgr.AddNamespace("pkg", package.NamespaceURI);
+                var metadata = package.SelectSingleNode("pkg:metadata", opfNsmgr);
+                //get title and try splitting
+                opfNsmgr.AddNamespace("dc", metadata.Attributes["xmlns:dc"].Value);
+                var dctitle = metadata.SelectSingleNode("dc:title", opfNsmgr).InnerText;
+                SplitTitle(dctitle);
+                //get creator(author)
+                Author = metadata.SelectSingleNode("dc:creator", opfNsmgr).InnerText;
+                //get *.ncx path
+
+            }
+            catch (EpubContentLoadFailureException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                throw new EpubContentLoadFailureException();
+            }
         }
     }
     public class GlobalSettings

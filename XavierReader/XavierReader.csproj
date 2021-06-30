@@ -154,6 +154,7 @@
       <DependentUpon>WhatsNewPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="XavierEpub.cs" />
+    <Compile Include="XavierExceptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
