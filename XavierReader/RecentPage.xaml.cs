@@ -28,9 +28,13 @@ namespace XavierReader
     public sealed partial class RecentPage : Page
     {
         public static event Action<string> OpenRecentBookEvent;
-        public static event Func<bool> QueryAppThemeEvent;
         //All recent books
         private List<BookImage> AllBooks { get; set; }
+        private GlobalSettings Settings { get; set; }
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            Settings = e.Parameter as GlobalSettings;
+        }
         private async void LoadRecent()
         {
             var CurrentBooks = new ObservableCollection<BookImage>();
@@ -65,7 +69,15 @@ namespace XavierReader
                     {
                         var cur = int.Parse(settings.Values[bi.TmpFolderName + ".Chapter"].ToString());
                         var all = int.Parse(settings.Values[bi.TmpFolderName + ".Chapters"].ToString());
-                        bi.Progress = cur * 100.0 / all;
+                        if (settings.Values.ContainsKey(bi.TmpFolderName + ".Chapter.Progress"))
+                        {
+                            var ccur = double.Parse(settings.Values[bi.TmpFolderName + ".Chapter.Progress"].ToString());
+                            bi.Progress = (cur + ccur) / all * 100.0;
+                        }
+                        else
+                        {
+                            bi.Progress = cur / all * 100.0;
+                        }
                     }
                     if (settings.Values.ContainsKey(bi.TmpFolderName + ".Author"))
                     {
@@ -119,12 +131,12 @@ namespace XavierReader
             {
                 Title = "Attention!",
                 MsgContent = "Delete your book?",
-                isDark = QueryAppThemeEvent()
+                isDark = Settings.isDark
             });
             var result = await cfm.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
-                var dia = new Loading("Deleting books...", RequestedTheme == ElementTheme.Dark);
+                var dia = new DeleteBook("Deleting books...", RequestedTheme == ElementTheme.Dark);
                 dia.ShowAsync();
                 List<string> tmp = new List<string>();
                 foreach (BookImage bi in ImageGrid.SelectedItems)

@@ -9,7 +9,7 @@
   <Identity
     Name="XavierReader"
     Publisher="CN=a1240"
-    Version="1.9.60.0" />
+    Version="2.0.78.0" />
 
   <mp:PhoneIdentity PhoneProductId="3df04d0b-7b85-4116-933c-632fddb6ae4f" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

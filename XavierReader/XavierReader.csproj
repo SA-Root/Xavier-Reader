@@ -128,8 +128,11 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Loading.xaml.cs">
-      <DependentUpon>Loading.xaml</DependentUpon>
+    <Compile Include="DeleteBook.xaml.cs">
+      <DependentUpon>DeleteBook.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LoadingBook.xaml.cs">
+      <DependentUpon>LoadingBook.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -225,11 +228,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="DeleteBook.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Dictionary1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Loading.xaml">
+    <Page Include="LoadingBook.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

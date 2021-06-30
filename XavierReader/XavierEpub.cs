@@ -42,7 +42,8 @@ namespace XavierReader
         PG13 = 1,
         R = 2,
         NC17 = 3,
-        G = 4
+        G = 4,
+        None = 5
     }
     public enum NodeType
     {
@@ -456,7 +457,7 @@ namespace XavierReader
             BC2.Clear();
         }
     }
-    class XavierEpubFile
+    public class XavierEpubFile
     {
         /// <summary>
         /// Name of folder containing extracted epub content
@@ -473,13 +474,35 @@ namespace XavierReader
         public string Author { get; set; }
         public EpubRating Rating { get; set; }
         public string Title { get; set; }
-        public uint ChapterCount { get; set; }
         public DateTime LastUpdateTime { get; set; }
         public bool DualPageView { get; set; }
+        public int TotalChapters { get; set; }
+        public int CurrentChapter { get; set; }
+        public double ChapterProgress { get; set; }
+        public DateTime LastReadTime { get; set; }
+        public string[] ChapterTitles { get; set; }
+        private string[] ChapterPaths { get; set; }
         /// <summary>
         /// Path to the cover image file
         /// </summary>
         public string CoverImage { get; set; }
+        /// <summary>
+        /// Block collection for FlipView1
+        /// </summary>
+        public List<List<Block>> BC1 { get; set; }
+        /// <summary>
+        /// Block collection for FlipView2
+        /// </summary>
+        public List<List<Block>> BC2 { get; set; }
+        /// <summary>
+        /// Single block collection for per-chapter loading mode
+        /// </summary>
+        public List<Block> Block1 { get; set; }
+        /// <summary>
+        /// Single block collection for per-chapter loading mode
+        /// </summary>
+        public List<Block> Block2 { get; set; }
+        public EpubLoadMode LoadMode { get; set; }
         public XavierEpubFile()
         {
 
@@ -499,8 +522,9 @@ namespace XavierReader
         /// <param name="loadMode">Specify epub file loading mode</param>
         /// <exception cref="EpubExtractionFailureException"/>
         /// <exception cref="EpubContentLoadFailureException"/>
-        public async Task<int> LoadBook(StorageFile storageFile, EpubLoadMode loadMode = EpubLoadMode.Full, bool multiThreadedTextLoading = false)
+        public async Task LoadBook(StorageFile storageFile, EpubLoadMode loadMode = EpubLoadMode.Full)
         {
+            LoadMode = loadMode;
             //copy to LocalState
             var tmp = FileIO.ReadBufferAsync(storageFile);
             var newFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(storageFile.Name, CreationCollisionOption.ReplaceExisting);
@@ -526,12 +550,244 @@ namespace XavierReader
             try
             {
                 LoadBookInfo();
+                LoadChapters();
+                LoadProgress();
             }
             catch (EpubContentLoadFailureException)
             {
                 throw;
             }
-            return 0;
+            return;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="nt"></param>
+        /// <param name="B1"></param>
+        /// <param name="B2"></param>
+        /// <param name="cnt"></param>
+        /// <param name="par1"></param>
+        /// <param name="par2"></param>
+        private void AddTextBlock(string text, NodeType nt, List<Block> B1, List<Block> B2, int cnt = 0, Paragraph par1 = null, Paragraph par2 = null)
+        {
+            //b par!=null
+            if (nt == NodeType.b)
+            {
+                string processed = text;
+                processed = processed.Replace("\n", " ");
+                var run1 = new Run
+                {
+                    Text = processed
+                };
+                run1.FontWeight = Windows.UI.Text.FontWeights.Bold;
+                par1.Inlines.Add(run1);
+                var run2 = new Run
+                {
+                    Text = processed
+                };
+                run2.FontWeight = Windows.UI.Text.FontWeights.Bold;
+                par2.Inlines.Add(run2);
+            }
+            //i par!=null
+            else if (nt == NodeType.i)
+            {
+                string processed = text;
+                processed = processed.Replace("\n", " ");
+                var run1 = new Run
+                {
+                    Text = processed
+                };
+                run1.FontStyle = Windows.UI.Text.FontStyle.Italic;
+                par1.Inlines.Add(run1);
+                var run2 = new Run
+                {
+                    Text = processed
+                };
+                run2.FontStyle = Windows.UI.Text.FontStyle.Italic;
+                par2.Inlines.Add(run2);
+            }
+            //h1-h6
+            else if (nt == NodeType.h)
+            {
+                var pp = new Paragraph();
+                var r = new Run
+                {
+                    Text = text + "\n",//extra line break
+                    Foreground = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]),
+                    FontWeight = Windows.UI.Text.FontWeights.Bold
+                };
+                pp.Inlines.Add(r);
+                B1.Add(pp);
+                var pp2 = new Paragraph();
+                var r2 = new Run
+                {
+                    Text = text + "\n",
+                    Foreground = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]),
+                    FontWeight = Windows.UI.Text.FontWeights.Bold
+                };
+                pp2.Inlines.Add(r2);
+                B2.Add(pp2);
+            }
+            //li
+            else if (nt == NodeType.li)
+            {
+                string processed = text;
+                processed = processed.Replace("\n", " ");
+                par1 = new Paragraph();
+                var run1 = new Run
+                {
+                    Text = cnt.ToString() + "." + processed + "\n"//extra line break
+                };
+                par1.Inlines.Add(run1);
+                B1.Add(par1);
+                par2 = new Paragraph();
+                var run2 = new Run
+                {
+                    Text = cnt.ToString() + "." + processed + "\n"
+                };
+                par2.Inlines.Add(run2);
+                B2.Add(par2);
+            }
+            //br par!=null
+            else if (nt == NodeType.br)
+            {
+                var run1 = new Run
+                {
+                    Text = "\n"
+                };
+                par1.Inlines.Add(run1);
+                var run2 = new Run
+                {
+                    Text = "\n"
+                };
+                par2.Inlines.Add(run2);
+            }
+            //text par!=null
+            else
+            {
+                string processed = text;
+                processed = processed.Replace("\n", " ");
+                var run1 = new Run
+                {
+                    Text = processed
+                };
+                par1.Inlines.Add(run1);
+                var run2 = new Run
+                {
+                    Text = processed
+                };
+                par2.Inlines.Add(run2);
+            }
+        }
+        public void LoadChapter(string f)
+        {
+            var B1 = new List<Block>();
+            var B2 = new List<Block>();
+            //process single chapter
+            XmlDocument xd = new XmlDocument();
+            xd.Load(ExtractedPath + "/" + f);
+            var html = xd.DocumentElement;
+            //select 'body'
+            var body = html.GetElementsByTagName("body")[0];
+            XmlNamespaceManager nsMgr = new XmlNamespaceManager(xd.NameTable);
+            nsMgr.AddNamespace("ns", body.NamespaceURI);
+            //select 'h1-h6'
+            for (int i = 1; i <= 6; ++i)
+            {
+                var h = body.SelectSingleNode(".//ns:h" + i.ToString(), nsMgr);
+                if (h != null)
+                {
+                    AddTextBlock(h.InnerText, NodeType.h, B1, B2);
+                }
+            }
+            //select 'section'
+            var section = body.SelectSingleNode("ns:section", nsMgr);
+            if (section != null)
+            {
+                //extract 'p'
+                var ps = section.SelectNodes(".//ns:p", nsMgr);
+                foreach (XmlNode p in ps)
+                {
+                    //extract single 'p'
+                    var par1 = new Paragraph();
+                    var par2 = new Paragraph();
+                    //plain text is a node
+                    foreach (XmlNode pc in p.ChildNodes)
+                    {
+                        if (pc.HasChildNodes)
+                        {
+                            switch (pc.Name)
+                            {
+                                case "strong":
+                                case "b":
+                                    AddTextBlock(pc.InnerText, NodeType.b, B1, B2, 0, par1, par2);
+                                    break;
+                                case "i":
+                                    AddTextBlock(pc.InnerText, NodeType.i, B1, B2, 0, par1, par2);
+                                    break;
+                                default:
+                                    AddTextBlock(pc.InnerText, NodeType.text, B1, B2, 0, par1, par2);
+                                    break;
+                            }
+                        }
+                        else //'p' only has plain text or pc is 'br'
+                        {
+                            if (pc.Name == "br")
+                            {
+                                AddTextBlock("", NodeType.br, B1, B2, 0, par1, par2);
+                            }
+                            else
+                            {
+                                AddTextBlock(pc.InnerText, NodeType.text, B1, B2, 0, par1, par2);
+                            }
+                        }
+                    }
+                    //add a paragraph line break
+                    AddTextBlock("", NodeType.br, B1, B2, 0, par1, par2);
+                    B1.Add(par1);
+                    B2.Add(par2);
+                }
+            }
+            //select 'li'(Content chapter)
+            else
+            {
+                var ol = body.SelectNodes(".//ns:li", nsMgr);
+                int cnt = 1;
+                foreach (XmlNode t in ol)
+                {
+                    AddTextBlock(t.InnerText, NodeType.li, B1, B2, cnt);
+                    ++cnt;
+                }
+            }
+            if (LoadMode == EpubLoadMode.Full)
+            {
+                BC1.Add(B1);
+                BC2.Add(B2);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void LoadChapters()
+        {
+            BC1 = new List<List<Block>>();
+            BC2 = new List<List<Block>>();
+            if (LoadMode == EpubLoadMode.Full)
+            {
+                foreach (var f in ChapterPaths)
+                {
+                    LoadChapter(f);
+                }
+            }
+            else if (LoadMode == EpubLoadMode.PerChapter)
+            {
+
+            }
+            else if (LoadMode == EpubLoadMode.Auto)
+            {
+
+            }
         }
         /// <summary>
         /// Get the *.opf file of the epub
@@ -561,13 +817,55 @@ namespace XavierReader
         /// <param name="title">Raw title</param>
         private void SplitTitle(string title)
         {
-
+            try
+            {
+                var tmp = new StringBuilder(title);
+                //split last update time
+                var tmpdate = tmp.ToString();
+                tmpdate = tmpdate.Substring(0, tmpdate.IndexOf(' ')).Replace('-', '/');
+                LastUpdateTime = DateTime.ParseExact(tmpdate, "d", CultureInfo.CreateSpecificCulture("ja-JP"));
+                tmp.Remove(0, tmpdate.IndexOf(' ') + 1);//removed date
+                                                        //split rating level
+                tmpdate = tmp.ToString();
+                var leftBracket = tmpdate.IndexOf('(');
+                var rightBracket = tmpdate.IndexOf(')');
+                var rating = tmpdate.Substring(leftBracket + 8, rightBracket - leftBracket - 8);
+                switch (rating)
+                {
+                    case "G":
+                        Rating = EpubRating.G;
+                        break;
+                    case "PG":
+                        Rating = EpubRating.PG;
+                        break;
+                    case "PG13":
+                        Rating = EpubRating.PG13;
+                        break;
+                    case "R":
+                        Rating = EpubRating.R;
+                        break;
+                    case "NC17":
+                        Rating = EpubRating.NC17;
+                        break;
+                    default:
+                        Rating = EpubRating.None;
+                        break;
+                }
+                tmp.Remove(leftBracket - 1, rightBracket - leftBracket + 2);//remove rating
+                                                                            //split title
+                Title = tmp.ToString();
+            }
+            catch (Exception)
+            {
+                LastUpdateTime = DateTime.MinValue;
+                Title = title;
+            }
         }
         /// <summary>
         /// Load book info(author, title, ...)
         /// </summary>
         /// <exception cref="EpubContentLoadFailureException"/>
-        public void LoadBookInfo()
+        private void LoadBookInfo()
         {
             try
             {
@@ -584,8 +882,31 @@ namespace XavierReader
                 SplitTitle(dctitle);
                 //get creator(author)
                 Author = metadata.SelectSingleNode("dc:creator", opfNsmgr).InnerText;
+                var manifest = package.SelectSingleNode("pkg:manifest", opfNsmgr);
+                //get chapter paths
+                var chapterPaths = manifest.SelectNodes("pkg:item[@media-type = \"application/xhtml+xml\" and @id != \"titlepage\"]", opfNsmgr);
+                TotalChapters = chapterPaths.Count;
+                ChapterPaths = new string[TotalChapters];
+                for (int i = 0; i < TotalChapters; ++i)
+                {
+                    ChapterPaths[i] = chapterPaths[i].Attributes["href"].Value;
+                }
                 //get *.ncx path
-
+                var ncxPath = ExtractedPath + "/" + manifest.SelectSingleNode("pkg:item[@media-type = \"application/x-dtbncx+xml\"]", opfNsmgr).Attributes["href"].Value;
+                var ncx = new XmlDocument();
+                ncx.Load(ncxPath);
+                var ncxroot = ncx.DocumentElement;
+                var ncxNsmgr = new XmlNamespaceManager(ncx.NameTable);
+                ncxNsmgr.AddNamespace("ncx", ncxroot.NamespaceURI);
+                //get chapter titles
+                var chapters = ncxroot.SelectNodes(".//ncx:navPoint", ncxNsmgr);
+                ChapterTitles = new string[TotalChapters];
+                ChapterTitles[0] = "Intro";
+                ChapterTitles[1] = "Contents";
+                for (int i = 0; i < chapters.Count; ++i)
+                {
+                    ChapterTitles[i + 2] = chapters[i].InnerText;
+                }
             }
             catch (EpubContentLoadFailureException)
             {
@@ -595,6 +916,84 @@ namespace XavierReader
             {
                 throw new EpubContentLoadFailureException();
             }
+            return;
+        }
+        /// <summary>
+        /// Load a recently read book
+        /// </summary>
+        /// <param name="epub">Epub file selected by FilePicker</param>
+        /// <param name="loadMode">Specify epub file loading mode</param>
+        public void LoadBook(string epub, EpubLoadMode loadMode = EpubLoadMode.Full)
+        {
+            ContentFolder = epub;
+            LoadMode = loadMode;
+            ExtractedPath = ApplicationData.Current.LocalFolder.Path + "/tmp/" + ContentFolder;
+            LoadBookInfo();
+            LoadChapters();
+            LoadProgress();
+            return;
+        }
+        private void LoadProgress()
+        {
+            var settings = ApplicationData.Current.LocalSettings;
+            //new book
+            if (!settings.Values.ContainsKey(Title))
+            {
+                settings.Values[Title] = ContentFolder;
+                settings.Values[ContentFolder] = Title;
+                settings.Values[ContentFolder + ".Chapter"] = "0";
+                settings.Values[ContentFolder + ".Chapter.Progress"] = "0";
+                settings.Values[ContentFolder + ".LastReadTime"] = DateTime.Now.ToString("g", new CultureInfo("en-US"));
+                ChapterProgress = 0;
+                CurrentChapter = 0;
+                LastReadTime = DateTime.Now;
+            }
+            else //recent book
+            {
+                if (!settings.Values.ContainsKey(ContentFolder + ".Chapter"))
+                {
+                    CurrentChapter = 0;
+                    settings.Values[ContentFolder + ".Chapter"] = "0";
+                }
+                else
+                {
+                    CurrentChapter = int.Parse(settings.Values[ContentFolder + ".Chapter"].ToString());
+                }
+                if (!settings.Values.ContainsKey(ContentFolder + ".Chapter.Progress"))
+                {
+                    ChapterProgress = 0;
+                    settings.Values[ContentFolder + ".Chapter.Progress"] = "0";
+                }
+                else
+                {
+                    ChapterProgress = double.Parse(settings.Values[ContentFolder + ".Chapter.Progress"].ToString());
+                }
+                if (!settings.Values.ContainsKey(ContentFolder + ".LastReadTime"))
+                {
+                    LastReadTime = DateTime.Now;
+                    settings.Values[ContentFolder + ".LastReadTime"] = DateTime.Now.ToString("g", new CultureInfo("en-US"));
+                }
+                else
+                {
+                    LastReadTime = DateTime.ParseExact(settings.Values[ContentFolder + ".LastReadTime"].ToString(), "g", new CultureInfo("en-US"));
+                }
+            }
+        }
+        /// <summary>
+        /// Clear content for reloading
+        /// </summary>
+        public void Clear()
+        {
+            foreach (var i in BC1)
+            {
+                i.Clear();
+            }
+            BC1.Clear();
+            foreach (var i in BC2)
+            {
+                i.Clear();
+            }
+            BC2.Clear();
         }
     }
     public class GlobalSettings

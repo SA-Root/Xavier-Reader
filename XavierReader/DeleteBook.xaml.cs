@@ -13,15 +13,17 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
+// The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
+
 namespace XavierReader
 {
-    public sealed partial class Loading : ContentDialog
+    public sealed partial class DeleteBook : ContentDialog
     {
-        public Loading(string load,bool isDark)
+        public DeleteBook(string text, bool isDark)
         {
             this.InitializeComponent();
-            txt.Text = load;
-            if(isDark)
+            txt.Text = text;
+            if (isDark)
             {
                 RequestedTheme = ElementTheme.Dark;
             }

@@ -37,7 +37,7 @@ namespace XavierReader
         public static event Action IncreaseFontEvent;
         public static event Action<int> ChangeChapterEvent;
         public static event Action<bool> SwitchModeEvent;
-        private XavierEpub CurrentBook { get; set; }
+        private XavierEpubFile CurrentBook { get; set; }
         private int CurrentChapter { get; set; }
         private GlobalSettings Settings { get; set; }
         private void SetMiniState()
@@ -97,10 +97,9 @@ namespace XavierReader
             MainPage.ButtonFeedback += ButtonFeedback;
             MainPage.ButtonFeedback2 += ButtonFeedback2;
             RecentPage.OpenRecentBookEvent += OpenRecentBook;
-            RecentPage.QueryAppThemeEvent += GetAppTheme;
             Window.Current.SizeChanged += CurrentWindow_SizeChanged;
             LoadSettings();
-            MainFrame.Navigate(typeof(RecentPage));
+            MainFrame.Navigate(typeof(RecentPage), Settings);
             if (Window.Current.Bounds.Width < 1200)
             {
                 SetMiniState();
@@ -115,7 +114,7 @@ namespace XavierReader
             BookTitle.Text = CurrentBook.Title;
             ToolTipService.SetToolTip(BookTitle, BookTitle.Text);
             BookAuthor.Text = CurrentBook.Author;
-            BookRating.Text = CurrentBook.Rate;
+            BookRating.Text = CurrentBook.Rating.ToString();
             var t = new ObservableCollection<string>();
             int cnt = 1;
             foreach (var i in CurrentBook.ChapterTitles)
@@ -146,32 +145,24 @@ namespace XavierReader
             SwitchViewButton.IsEnabled = false;
             BookInfoButton.IsEnabled = false;
         }
-        private Task CreateBook() =>
-            Task.Run(() =>
-            {
-                Thread.Sleep(200);
-            }
-            );
-        private async void OpenRecentBook(string TmpFolderName)
+        private async void OpenRecentBook(string ContentFolder)
         {
-            var dia = new Loading("Loading Book...", NightModeButton.IsChecked == true);
-            dia.ShowAsync();
-            await CreateBook();
-            CurrentBook = new XavierEpub();
-            CurrentBook.LoadBook(TmpFolderName);
-            CurrentBook.isTwo = SwitchViewButton.IsChecked == true;
+            CurrentBook = new XavierEpubFile();
+            var dia = new LoadingBook(GetAppTheme());
+            await dia.ShowAsync(CurrentBook, ContentFolder);
+            CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
             var settings = ApplicationData.Current.LocalSettings;
-            if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
+            if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Chapters"))
             {
-                settings.Values[CurrentBook.TmpFolderName + ".Chapters"] = CurrentBook.TotalChapters.ToString();
+                settings.Values[CurrentBook.ContentFolder + ".Chapters"] = CurrentBook.TotalChapters.ToString();
             }
-            if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
+            if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Author"))
             {
-                settings.Values[CurrentBook.TmpFolderName + ".Author"] = CurrentBook.Author;
+                settings.Values[CurrentBook.ContentFolder + ".Author"] = CurrentBook.Author;
             }
-            if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Author"))
+            if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Rating"))
             {
-                settings.Values[CurrentBook.TmpFolderName + ".Rating"] = CurrentBook.Rate;
+                settings.Values[CurrentBook.ContentFolder + ".Rating"] = CurrentBook.Rating.ToString();
             }
             EnableReadingControls();
             UpdateSidebarInfo();
@@ -223,48 +214,32 @@ namespace XavierReader
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                //var dia = new Loading("Loading Book...", NightModeButton.IsChecked == true);
-                //dia.ShowAsync();
-
-                var temp = new XavierEpubFile();
-                try
+                CurrentBook = new XavierEpubFile();
+                var dia = new LoadingBook(GetAppTheme());
+                await dia.ShowAsync(CurrentBook, file);
+                CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
+                var settings = ApplicationData.Current.LocalSettings;
+                if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Chapters"))
                 {
-                    await temp.LoadBook(file);
+                    settings.Values[CurrentBook.ContentFolder + ".Chapters"] = CurrentBook.TotalChapters.ToString();
                 }
-                catch (EpubExtractionFailureException)
+                if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Author"))
                 {
-                    temp.CleanUp();
-                    //show err dialog
+                    settings.Values[CurrentBook.ContentFolder + ".Author"] = CurrentBook.Author;
                 }
-                catch (EpubContentLoadFailureException)
+                if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Rating"))
                 {
-                    temp.CleanUp();
-                    //show err dialog
+                    settings.Values[CurrentBook.ContentFolder + ".Rating"] = CurrentBook.Rating.ToString();
                 }
-
-                //CurrentBook.isTwo = SwitchViewButton.IsChecked == true;
-                //var settings = ApplicationData.Current.LocalSettings;
-                //if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
-                //{
-                //    settings.Values[CurrentBook.TmpFolderName + ".Chapters"] = CurrentBook.TotalChapters.ToString();
-                //}
-                //if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Chapters"))
-                //{
-                //    settings.Values[CurrentBook.TmpFolderName + ".Author"] = CurrentBook.Author;
-                //}
-                //if (!settings.Values.ContainsKey(CurrentBook.TmpFolderName + ".Author"))
-                //{
-                //    settings.Values[CurrentBook.TmpFolderName + ".Rating"] = CurrentBook.Rate;
-                //}
-                //EnableReadingControls();
-                //UpdateSidebarInfo();
-                //MainFrame.Navigate(typeof(MainPage), CurrentBook);
-                //dia.Hide();
+                EnableReadingControls();
+                UpdateSidebarInfo();
+                MainFrame.Navigate(typeof(MainPage), CurrentBook);
+                dia.Hide();
             }
         }
         private async void AboutButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new WhatsNewDialog(NightModeButton.IsChecked == true);
+            var dialog = new WhatsNewDialog(GetAppTheme());
             await dialog.ShowAsync();
         }
         private void ShrinkFont_Click(object sender, RoutedEventArgs e)
@@ -492,7 +467,6 @@ namespace XavierReader
             MainPage.ButtonFeedback -= ButtonFeedback;
             MainPage.ButtonFeedback2 -= ButtonFeedback2;
             RecentPage.OpenRecentBookEvent -= OpenRecentBook;
-            RecentPage.QueryAppThemeEvent -= GetAppTheme;
             Window.Current.SizeChanged -= CurrentWindow_SizeChanged;
         }
         private void SideContents_SelectionChanged(object sender, SelectionChangedEventArgs e)

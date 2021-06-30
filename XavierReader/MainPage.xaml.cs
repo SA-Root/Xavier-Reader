@@ -33,7 +33,7 @@ namespace XavierReader
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private XavierEpub NowEpub { get; set; }
+        private XavierEpubFile NowEpub { get; set; }
         private double ChapterProgress { get; set; }
         private int CurrentChapter { get; set; }
         private int _FontSize { get; set; }
@@ -435,16 +435,19 @@ namespace XavierReader
             ButtonFeedback(ch, NowEpub.TotalChapters);
             rich1.Blocks.Clear();
             rich2.Blocks.Clear();
-            foreach (var t in NowEpub.BC1[ch])
+            if (NowEpub.LoadMode == EpubLoadMode.Full)
             {
-                rich1.Blocks.Add(t);
-                t.FontSize = _FontSize;
-            }
-            rich1.UpdateLayout();
-            foreach (var t in NowEpub.BC2[ch])
-            {
-                rich2.Blocks.Add(t);
-                t.FontSize = _FontSize;
+                foreach (var t in NowEpub.BC1[ch])
+                {
+                    rich1.Blocks.Add(t);
+                    t.FontSize = _FontSize;
+                }
+                rich1.UpdateLayout();
+                foreach (var t in NowEpub.BC2[ch])
+                {
+                    rich2.Blocks.Add(t);
+                    t.FontSize = _FontSize;
+                }
             }
             rich2.UpdateLayout();
             UpdateView();
@@ -459,8 +462,8 @@ namespace XavierReader
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            NowEpub = e.Parameter as XavierEpub;
-            if (NowEpub.isTwo)
+            NowEpub = e.Parameter as XavierEpubFile;
+            if (NowEpub.DualPageView)
             {
                 flp1.Visibility = Visibility.Collapsed;
                 flp2.Visibility = Visibility.Visible;
@@ -481,9 +484,9 @@ namespace XavierReader
         private void SaveProgress()
         {
             var settings = ApplicationData.Current.LocalSettings;
-            settings.Values[NowEpub.TmpFolderName + ".Chapter"] = CurrentChapter.ToString();
-            settings.Values[NowEpub.TmpFolderName + ".Chapter.Progress"] = ChapterProgress.ToString();
-            settings.Values[NowEpub.TmpFolderName + ".LastReadTime"] = DateTime.Now.ToString("g", new CultureInfo("en-US"));
+            settings.Values[NowEpub.ContentFolder + ".Chapter"] = CurrentChapter.ToString();
+            settings.Values[NowEpub.ContentFolder + ".Chapter.Progress"] = ChapterProgress.ToString();
+            settings.Values[NowEpub.ContentFolder + ".LastReadTime"] = DateTime.Now.ToString("g", new CultureInfo("en-US"));
             settings.Values["FontSize"] = _FontSize.ToString();
         }
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -533,7 +536,7 @@ namespace XavierReader
                 PreviousWidth = curw;
                 Task.Run(async () =>
                 {
-                    Thread.Sleep(300);
+                    Thread.Sleep(200);
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
 #if DEBUG
