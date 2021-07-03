@@ -25,7 +25,14 @@ namespace XavierReader
             if (param.Title != null) Title = param.Title;
             if (param.MsgContent != null) MsgContent.Text = param.MsgContent;
             else MsgContent.Visibility = Visibility.Collapsed;
-            if (param.isDark) RequestedTheme = ElementTheme.Dark;
+            if (param.isDark)
+            {
+                RequestedTheme = ElementTheme.Dark;
+            }
+            else
+            {
+                RequestedTheme = ElementTheme.Light;
+            }
         }
 
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)

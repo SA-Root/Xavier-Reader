@@ -19,6 +19,8 @@ using Windows.UI;
 using System.Xml;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace XavierReader
 {
@@ -55,41 +57,12 @@ namespace XavierReader
                         ImageLocation = f.FullName + "/cover_image.jpg",
                         TmpFolderName = f.Name
                     };
-                    var settings = ApplicationData.Current.LocalSettings;
-                    if (!settings.Values.ContainsKey(bi.TmpFolderName + ".LastReadTime"))
-                    {
-                        bi.LastReadTime = DateTime.Now.ToString("g", new CultureInfo("en-US"));
-                        settings.Values[bi.TmpFolderName + ".LastReadTime"] = DateTime.Now.ToString("g", new CultureInfo("en-US"));
-                    }
-                    else
-                    {
-                        bi.LastReadTime = settings.Values[bi.TmpFolderName + ".LastReadTime"].ToString();
-                    }
-                    if (settings.Values.ContainsKey(bi.TmpFolderName + ".Chapters"))
-                    {
-                        var cur = int.Parse(settings.Values[bi.TmpFolderName + ".Chapter"].ToString());
-                        var all = int.Parse(settings.Values[bi.TmpFolderName + ".Chapters"].ToString());
-                        if (settings.Values.ContainsKey(bi.TmpFolderName + ".Chapter.Progress"))
-                        {
-                            var ccur = double.Parse(settings.Values[bi.TmpFolderName + ".Chapter.Progress"].ToString());
-                            bi.Progress = (cur + ccur) / all * 100.0;
-                        }
-                        else
-                        {
-                            bi.Progress = cur / all * 100.0;
-                        }
-                    }
-                    if (settings.Values.ContainsKey(bi.TmpFolderName + ".Author"))
-                    {
-                        bi.Author = settings.Values[bi.TmpFolderName + ".Author"].ToString();
-                    }
-                    if (settings.Values.ContainsKey(bi.TmpFolderName + ".Rating"))
-                    {
-                        bi.Rating = settings.Values[bi.TmpFolderName + ".Rating"].ToString();
-                    }
+                    bi.Settings = new BookSettings(bi.TmpFolderName);
+                    bi.Settings.LoadSettings();
+                    bi.Progress = (bi.Settings.CurrentChapter + bi.Settings.ChapterProgress) / bi.Settings.Chapters * 100.0;
                     AllBooks.Add(bi);
                 }
-                var t = AllBooks.OrderByDescending(item => DateTime.ParseExact(item.LastReadTime, "g", new CultureInfo("en-US")));
+                var t = AllBooks.OrderByDescending(item => item.Settings.LastReadTime);
                 foreach (var i in t)
                 {
                     CurrentBooks.Add(i);
@@ -125,6 +98,12 @@ namespace XavierReader
                 ImageGrid.IsItemClickEnabled = true;
             }
         }
+        private Task CreateBook() =>
+            Task.Run(() =>
+            {
+                Thread.Sleep(100);
+            }
+            );
         private async void DeleteBooksButton_Click(object sender, RoutedEventArgs e)
         {
             var cfm = new MessageDialog(new MsgParam
@@ -136,26 +115,16 @@ namespace XavierReader
             var result = await cfm.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
-                var dia = new DeleteBook("Deleting books...", RequestedTheme == ElementTheme.Dark);
+                var dia = new DeleteBook("Deleting books...", Settings.isDark);
                 dia.ShowAsync();
-                List<string> tmp = new List<string>();
+                await CreateBook();
+                List<BookImage> tmp = new List<BookImage>();
                 foreach (BookImage bi in ImageGrid.SelectedItems)
                 {
-                    tmp.Add(bi.TmpFolderName);
-                    var settings = ApplicationData.Current.LocalSettings;
+                    tmp.Add(bi);
+                    bi.Settings.RemoveSettings();
                     var local = ApplicationData.Current.LocalFolder;
                     var localtmp = await local.GetFolderAsync("tmp");
-                    var title = settings.Values[bi.TmpFolderName]?.ToString();
-                    if (title != null)
-                    {
-                        settings.Values.Remove(bi.TmpFolderName);
-                        settings.Values.Remove(title);
-                        settings.Values.Remove(bi.TmpFolderName + ".Chapter");
-                        settings.Values.Remove(bi.TmpFolderName + ".Chapters");
-                        settings.Values.Remove(bi.TmpFolderName + ".Author");
-                        settings.Values.Remove(bi.TmpFolderName + ".Rating");
-                        settings.Values.Remove(bi.TmpFolderName + ".ChapterProgress");
-                    }
                     var fileToDelete = await local.GetFileAsync(bi.TmpFolderName);
                     await fileToDelete.DeleteAsync();
                     var folderToDelete = await localtmp.GetFolderAsync(bi.TmpFolderName);
@@ -163,22 +132,20 @@ namespace XavierReader
                 }
                 foreach (var s in tmp)
                 {
-                    for (int i = 0; i < AllBooks.Count; ++i)
-                    {
-                        if (s == AllBooks[i].TmpFolderName)
-                        {
-                            AllBooks.RemoveAt(i);
-                            break;
-                        }
-                    }
+                    AllBooks.Remove(s);
                 }
                 ReloadBooks();
                 dia.Hide();
+                ImageGridTop.Background = null;
+                ImageGrid.SelectionMode = ListViewSelectionMode.None;
+                DeleteBooksButton.Visibility = Visibility.Collapsed;
+                ImageGrid.IsItemClickEnabled = true;
             }
-            ImageGrid.Background = null;
-            ImageGrid.SelectionMode = ListViewSelectionMode.None;
-            DeleteBooksButton.Visibility = Visibility.Collapsed;
-            ImageGrid.IsItemClickEnabled = true;
+            else
+            {
+                ImageGrid.SelectionMode = ListViewSelectionMode.None;
+                ImageGrid.SelectionMode = ListViewSelectionMode.Multiple;
+            }
         }
         private void FilterFlyout_Closed(object sender, object e)
         {
@@ -219,7 +186,7 @@ namespace XavierReader
                 RFlyout.IsChecked = false;
                 newBooks = null;
             }
-            ImageGrid.ItemsSource = newBooks?.OrderByDescending(item => DateTime.ParseExact(item.LastReadTime, "g", new CultureInfo("en-US")));
+            ImageGrid.ItemsSource = newBooks?.OrderByDescending(item => item.Settings.LastReadTime);
         }
         private void ReloadBooks()
         {
@@ -227,7 +194,7 @@ namespace XavierReader
             if (NC17Flyout.IsChecked == true)
             {
                 var tmp = from c in AllBooks
-                          where c.Rating == "NC17"
+                          where c.Settings.Rating == "NC17"
                           select c;
                 var nc17 = tmp.ToList();
                 foreach (var i in nc17)
@@ -238,7 +205,7 @@ namespace XavierReader
             if (GFlyout.IsChecked == true)
             {
                 var tmp = from c in AllBooks
-                          where c.Rating == "G"
+                          where c.Settings.Rating == "G"
                           select c;
                 var g = tmp.ToList();
                 foreach (var i in g)
@@ -249,7 +216,7 @@ namespace XavierReader
             if (PGFlyout.IsChecked == true)
             {
                 var tmp = from c in AllBooks
-                          where c.Rating == "PG"
+                          where c.Settings.Rating == "PG"
                           select c;
                 var pg = tmp.ToList();
                 foreach (var i in pg)
@@ -260,7 +227,7 @@ namespace XavierReader
             if (RFlyout.IsChecked == true)
             {
                 var tmp = from c in AllBooks
-                          where c.Rating == "R"
+                          where c.Settings.Rating == "R"
                           select c;
                 var r = tmp.ToList();
                 foreach (var i in r)
@@ -271,7 +238,7 @@ namespace XavierReader
             if (PG13Flyout.IsChecked == true)
             {
                 var tmp = from c in AllBooks
-                          where c.Rating == "PG13"
+                          where c.Settings.Rating == "PG13"
                           select c;
                 var pg13 = tmp.ToList();
                 foreach (var i in pg13)
@@ -291,7 +258,7 @@ namespace XavierReader
             {
                 AllRatingFlyout.IsChecked = false;
             }
-            ImageGrid.ItemsSource = newBooks.OrderByDescending(item => DateTime.ParseExact(item.LastReadTime, "g", new CultureInfo("en-US")));
+            ImageGrid.ItemsSource = newBooks.OrderByDescending(item => item.Settings.LastReadTime);
         }
         private void NC17Flyout_Click(object sender, RoutedEventArgs e)
         {

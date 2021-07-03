@@ -151,19 +151,6 @@ namespace XavierReader
             var dia = new LoadingBook(GetAppTheme());
             await dia.ShowAsync(CurrentBook, ContentFolder);
             CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
-            var settings = ApplicationData.Current.LocalSettings;
-            if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Chapters"))
-            {
-                settings.Values[CurrentBook.ContentFolder + ".Chapters"] = CurrentBook.TotalChapters.ToString();
-            }
-            if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Author"))
-            {
-                settings.Values[CurrentBook.ContentFolder + ".Author"] = CurrentBook.Author;
-            }
-            if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Rating"))
-            {
-                settings.Values[CurrentBook.ContentFolder + ".Rating"] = CurrentBook.Rating.ToString();
-            }
             EnableReadingControls();
             UpdateSidebarInfo();
             MainFrame.Navigate(typeof(MainPage), CurrentBook);
@@ -218,19 +205,6 @@ namespace XavierReader
                 var dia = new LoadingBook(GetAppTheme());
                 await dia.ShowAsync(CurrentBook, file);
                 CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
-                var settings = ApplicationData.Current.LocalSettings;
-                if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Chapters"))
-                {
-                    settings.Values[CurrentBook.ContentFolder + ".Chapters"] = CurrentBook.TotalChapters.ToString();
-                }
-                if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Author"))
-                {
-                    settings.Values[CurrentBook.ContentFolder + ".Author"] = CurrentBook.Author;
-                }
-                if (!settings.Values.ContainsKey(CurrentBook.ContentFolder + ".Rating"))
-                {
-                    settings.Values[CurrentBook.ContentFolder + ".Rating"] = CurrentBook.Rating.ToString();
-                }
                 EnableReadingControls();
                 UpdateSidebarInfo();
                 MainFrame.Navigate(typeof(MainPage), CurrentBook);
@@ -278,7 +252,7 @@ namespace XavierReader
         private void HomePageButton_Click(object sender, RoutedEventArgs e)
         {
             DisableReadingControls();
-            MainFrame.Navigate(typeof(RecentPage));
+            MainFrame.Navigate(typeof(RecentPage), Settings);
         }
         private void SwitchViewButton_Click(object sender, RoutedEventArgs e)
         {

@@ -34,8 +34,6 @@ namespace XavierReader
     public sealed partial class MainPage : Page
     {
         private XavierEpubFile NowEpub { get; set; }
-        private double ChapterProgress { get; set; }
-        private int CurrentChapter { get; set; }
         private int _FontSize { get; set; }
         private RichTextBlockOverflow last1 { get; set; }
         private RichTextBlockOverflow last2 { get; set; }
@@ -47,13 +45,13 @@ namespace XavierReader
         {
             if (flp1.Visibility == Visibility.Visible)
             {
-                ChapterProgress = (double)(flp1.SelectedIndex + 1) / (double)flp1.Items.Count;
-                curPage.Text = (CurrentChapter + 1).ToString() + "." + NowEpub.ChapterTitles[CurrentChapter] + "-" + Math.Round(ChapterProgress * 100, 2).ToString() + "% [" + (flp1.SelectedIndex + 1).ToString() + "/" + flp1.Items.Count.ToString() + "]";
+                NowEpub.Settings.ChapterProgress = (flp1.SelectedIndex + 1) / (double)flp1.Items.Count;
+                curPage.Text = (NowEpub.Settings.CurrentChapter + 1).ToString() + "." + NowEpub.ChapterTitles[NowEpub.Settings.CurrentChapter] + "-" + Math.Round(NowEpub.Settings.ChapterProgress * 100, 2).ToString() + "% [" + (flp1.SelectedIndex + 1).ToString() + "/" + flp1.Items.Count.ToString() + "]";
             }
             else
             {
-                ChapterProgress = (double)(flp2.SelectedIndex + 1) / (double)flp2.Items.Count;
-                curPage.Text = (CurrentChapter + 1).ToString() + "." + NowEpub.ChapterTitles[CurrentChapter] + "-" + Math.Round(ChapterProgress * 100, 2).ToString() + "% [" + (flp2.SelectedIndex + 1).ToString() + "/" + flp2.Items.Count.ToString() + "]";
+                NowEpub.Settings.ChapterProgress = (flp2.SelectedIndex + 1) / (double)flp2.Items.Count;
+                curPage.Text = (NowEpub.Settings.CurrentChapter + 1).ToString() + "." + NowEpub.ChapterTitles[NowEpub.Settings.CurrentChapter] + "-" + Math.Round(NowEpub.Settings.ChapterProgress * 100, 2).ToString() + "% [" + (flp2.SelectedIndex + 1).ToString() + "/" + flp2.Items.Count.ToString() + "]";
             }
         }
         public MainPage()
@@ -61,8 +59,6 @@ namespace XavierReader
             this.InitializeComponent();
             last1 = null;
             last2 = null;
-            ChapterProgress = 0;
-            CurrentChapter = 0;
             var settings = ApplicationData.Current.LocalSettings;
             if (!settings.Values.ContainsKey("FontSize"))
             {
@@ -337,42 +333,33 @@ namespace XavierReader
             //计数追踪
             if (flp2.Visibility == Visibility.Visible)
             {
-                if (ChapterProgress <= 0.001 || flp2.Items.Count == 1)
+                if (NowEpub.Settings.ChapterProgress <= 0.001 || flp2.Items.Count == 1)
                 {
                     flp2.SelectedIndex = 0;
                 }
                 else
                 {
-                    int tmp = (int)Math.Round(ChapterProgress * flp2.Items.Count, 0) - 1;
+                    int tmp = (int)Math.Round(NowEpub.Settings.ChapterProgress * flp2.Items.Count, 0) - 1;
                     if (tmp < 0) tmp = 0;
                     flp2.SelectedIndex = tmp;
                 }
-#if DEBUG
-                Debug.Print("TrackPage flp2: " + (flp2.SelectedIndex + 1).ToString() + "/" + flp2.Items.Count.ToString() + "\n");
-#endif
             }
             else
             {
-                if (ChapterProgress <= 0.001 || flp1.Items.Count == 1)
+                if (NowEpub.Settings.ChapterProgress <= 0.001 || flp1.Items.Count == 1)
                 {
                     flp1.SelectedIndex = 0;
                 }
                 else
                 {
-                    int tmp = (int)Math.Round(ChapterProgress * flp1.Items.Count, 0) - 1;
+                    int tmp = (int)Math.Round(NowEpub.Settings.ChapterProgress * flp1.Items.Count, 0) - 1;
                     if (tmp < 0) tmp = 0;
                     flp1.SelectedIndex = tmp;
                 }
-#if DEBUG
-                Debug.Print("TrackPage flp1: " + (flp1.SelectedIndex + 1).ToString() + "/" + flp1.Items.Count.ToString() + "\n");
-#endif
             }
         }
         private void flp1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-#if DEBUG
-            Debug.Print("flp1_SelectionChanged: " + flp1.SelectedIndex.ToString() + "\n");
-#endif
             if (flp1.Items.Count > 0)
             {
                 if (flp1.SelectedIndex >= 0 && NowEpub != null)
@@ -380,15 +367,11 @@ namespace XavierReader
                     var t = (flp1.SelectedItem as RichTextBlockOverflow)?.ContentStart;
                     if (t != null)
                     {
-                        ChapterProgress = (double)(flp1.SelectedIndex + 1) / (double)flp1.Items.Count;
-
-#if DEBUG
-                        Debug.Print("Current offset 1: " + ChapterProgress.ToString() + "\n");
-#endif
+                        NowEpub.Settings.ChapterProgress = (flp1.SelectedIndex + 1) / (double)flp1.Items.Count;
                     }
                     else
                     {
-                        ChapterProgress = 0;
+                        NowEpub.Settings.ChapterProgress = 0;
                     }
                     SaveProgress();
                     UpdateProgressDisplay();
@@ -397,9 +380,6 @@ namespace XavierReader
         }
         private void flp2_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-#if DEBUG
-            Debug.Print("flp2_SelectionChanged: " + flp2.SelectedIndex.ToString() + "\n");
-#endif
             if (flp2.Items.Count > 0)
             {
                 if (flp2.SelectedIndex >= 0 && NowEpub != null)
@@ -407,31 +387,28 @@ namespace XavierReader
                     var t = ((flp2.Items[flp2.SelectedIndex] as Grid)?.Children[0] as RichTextBlockOverflow)?.ContentEnd;
                     if (t != null)
                     {
-                        ChapterProgress = (double)(flp2.SelectedIndex + 1) / (double)flp2.Items.Count;
+                        NowEpub.Settings.ChapterProgress = (double)(flp2.SelectedIndex + 1) / (double)flp2.Items.Count;
                     }
                     else
                     {
                         t = ((flp2.Items[flp2.SelectedIndex] as Grid)?.Children[0] as RichTextBlock)?.ContentEnd;
                         if (t != null)
                         {
-                            ChapterProgress = (double)(flp2.SelectedIndex + 1) / (double)flp2.Items.Count;
+                            NowEpub.Settings.ChapterProgress = (double)(flp2.SelectedIndex + 1) / (double)flp2.Items.Count;
                         }
                         else
                         {
-                            ChapterProgress = 0;
+                            NowEpub.Settings.ChapterProgress = 0;
                         }
                     }
                     SaveProgress();
                     UpdateProgressDisplay();
                 }
-#if DEBUG
-                Debug.Print("Current offset 2: " + ChapterProgress.ToString() + "\n");
-#endif
             }
         }
         private void NavigateChapter(int ch, double prog)
         {
-            CurrentChapter = ch;
+            NowEpub.Settings.CurrentChapter = ch;
             ButtonFeedback(ch, NowEpub.TotalChapters);
             rich1.Blocks.Clear();
             rich2.Blocks.Clear();
@@ -451,9 +428,9 @@ namespace XavierReader
             }
             rich2.UpdateLayout();
             UpdateView();
-            ChapterProgress = prog;
+            NowEpub.Settings.ChapterProgress = prog;
 #if DEBUG
-            Debug.Print("CurrentChapter: " + CurrentChapter.ToString() + " prog:" + ChapterProgress.ToString() + "\n");
+            Debug.Print("CurrentChapter: " + NowEpub.Settings.CurrentChapter.ToString() + " prog:" + NowEpub.Settings.ChapterProgress.ToString() + "\n");
 #endif
             TrackPage();
             UpdateProgressDisplay();
@@ -484,10 +461,9 @@ namespace XavierReader
         private void SaveProgress()
         {
             var settings = ApplicationData.Current.LocalSettings;
-            settings.Values[NowEpub.ContentFolder + ".Chapter"] = CurrentChapter.ToString();
-            settings.Values[NowEpub.ContentFolder + ".Chapter.Progress"] = ChapterProgress.ToString();
-            settings.Values[NowEpub.ContentFolder + ".LastReadTime"] = DateTime.Now.ToString("g", new CultureInfo("en-US"));
             settings.Values["FontSize"] = _FontSize.ToString();
+            NowEpub.Settings.LastReadTime = DateTime.Now;
+            NowEpub.Settings.SaveSettings();
         }
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {

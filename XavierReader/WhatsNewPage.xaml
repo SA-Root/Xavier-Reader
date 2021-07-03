@@ -25,7 +25,11 @@
                 <ScrollViewer.Content>
                     <TextBlock xml:space="preserve" Padding="10,10,10,10" FontSize="16" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch" TextWrapping="WrapWholeWords" 
                                VerticalAlignment="Stretch"
-                               >Version 2.0.78:
+                               >Version 2.1.86:
+    Implementing new settings interop API
+    Fixed deleting books related issues
+                        
+Version 2.0.78:
     Implementing the new epub analyzer API
     Optimized recent books' progress display
                         

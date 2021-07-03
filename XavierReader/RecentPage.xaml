@@ -40,7 +40,7 @@
                             <Image Margin="10,10,10,5" Stretch = "Fill" 
                            Source = '{x:Bind ImageLocation}' 
                            Width = '150' Height = '200'
-                           ToolTipService.ToolTip="{x:Bind LastReadTime}">
+                           ToolTipService.ToolTip="{x:Bind Settings.LastReadTime}">
                             </Image>
                             <ProgressBar Value="{x:Bind Progress}" Margin="10,0,10,5"></ProgressBar>
                         </StackPanel>
