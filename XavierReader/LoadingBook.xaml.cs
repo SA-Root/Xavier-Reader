@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
+﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using Windows.Storage;
 using System.Threading.Tasks;
 using System.Threading;
@@ -20,9 +8,10 @@ namespace XavierReader
 {
     public sealed partial class LoadingBook : ContentDialog
     {
-        public LoadingBook(bool isDark)
+        public LoadingBook(bool isDark, string msg = "Loading your book...")
         {
             this.InitializeComponent();
+            txt.Text = msg;
             if (isDark)
             {
                 RequestedTheme = ElementTheme.Dark;

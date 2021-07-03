@@ -1,27 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
-using muxc = Microsoft.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-using System.IO.Compression;
 using Windows.Storage;
-using Windows.Storage.Streams;
-using Windows.UI.Xaml.Documents;
 using System.Collections.ObjectModel;
-using Windows.ApplicationModel.Activation;
-using System.Xml;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
@@ -147,7 +130,10 @@ namespace XavierReader
         }
         private async void OpenRecentBook(string ContentFolder)
         {
-            CurrentBook = new XavierEpubFile();
+            CurrentBook = new XavierEpubFile()
+            {
+                LoadMode = Settings.LoadMode
+            };
             var dia = new LoadingBook(GetAppTheme());
             await dia.ShowAsync(CurrentBook, ContentFolder);
             CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
@@ -201,7 +187,10 @@ namespace XavierReader
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                CurrentBook = new XavierEpubFile();
+                CurrentBook = new XavierEpubFile()
+                {
+                    LoadMode = Settings.LoadMode
+                };
                 var dia = new LoadingBook(GetAppTheme());
                 await dia.ShowAsync(CurrentBook, file);
                 CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
@@ -224,16 +213,44 @@ namespace XavierReader
         {
             IncreaseFontEvent();
         }
-        private void PreviousChapterButton_Click(object sender, RoutedEventArgs e)
+        private Task CreateBook() =>
+            Task.Run(() =>
+            {
+                Thread.Sleep(200);
+            }
+            );
+        private async void PreviousChapterButton_Click(object sender, RoutedEventArgs e)
         {
             --CurrentChapter;
-            ChangeChapterEvent(CurrentChapter);
+            if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
+            {
+                var loading = new LoadingBook(Settings.isDark, $"Loading Chapter {CurrentChapter + 1}...");
+                loading.ShowAsync();
+                await CreateBook();
+                ChangeChapterEvent(CurrentChapter);
+                loading.Hide();
+            }
+            else
+            {
+                ChangeChapterEvent(CurrentChapter);
+            }
             --SideContents.SelectedIndex;
         }
-        private void NextChapterButton_Click(object sender, RoutedEventArgs e)
+        private async void NextChapterButton_Click(object sender, RoutedEventArgs e)
         {
             ++CurrentChapter;
-            ChangeChapterEvent(CurrentChapter);
+            if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
+            {
+                var loading = new LoadingBook(Settings.isDark, $"Loading Chapter {CurrentChapter + 1}...");
+                loading.ShowAsync();
+                await CreateBook();
+                ChangeChapterEvent(CurrentChapter);
+                loading.Hide();
+            }
+            else
+            {
+                ChangeChapterEvent(CurrentChapter);
+            }
             ++SideContents.SelectedIndex;
         }
         private void NightModeButton_Click(object sender, RoutedEventArgs e)
@@ -326,9 +343,31 @@ namespace XavierReader
         {
             Settings = new GlobalSettings
             {
-                isDark = NightModeButton.IsChecked == true
+                isDark = NightModeButton.IsChecked == true,
+                RatingFilter = new HashSet<string> { "PG", "PG13", "NC17", "R", "G" }
             };
             var AppSettings = ApplicationData.Current.LocalSettings;
+            if (!AppSettings.Values.ContainsKey("LoadMode"))
+            {
+                Settings.LoadMode = EpubLoadMode.PerChapter;
+                AppSettings.Values["LoadMode"] = Settings.LoadMode.ToString();
+            }
+            else
+            {
+                var strMode = AppSettings.Values["LoadMode"].ToString();
+                if (strMode == "Auto")
+                {
+                    Settings.LoadMode = EpubLoadMode.Auto;
+                }
+                else if (strMode == "Full")
+                {
+                    Settings.LoadMode = EpubLoadMode.Full;
+                }
+                else if (strMode == "PerChapter")
+                {
+                    Settings.LoadMode = EpubLoadMode.PerChapter;
+                }
+            }
             if (!AppSettings.Values.ContainsKey("isAcrylic"))
             {
                 AppSettings.Values["isAcrylic"] = "0";
@@ -392,6 +431,7 @@ namespace XavierReader
         {
             Settings = gs;
             var AppSettings = ApplicationData.Current.LocalSettings;
+            AppSettings.Values["LoadMode"] = Settings.LoadMode.ToString();
             if (Settings.isAcrylicOn)
             {
                 VisualStateManager.GoToState(this, "Acrylic", false);
@@ -443,12 +483,23 @@ namespace XavierReader
             RecentPage.OpenRecentBookEvent -= OpenRecentBook;
             Window.Current.SizeChanged -= CurrentWindow_SizeChanged;
         }
-        private void SideContents_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SideContents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (SideContents.SelectedIndex >= 0 && ChangeChapterEvent != null)
             {
                 CurrentChapter = SideContents.SelectedIndex;
-                ChangeChapterEvent(SideContents.SelectedIndex);
+                if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
+                {
+                    var loading = new LoadingBook(Settings.isDark, $"Loading Chapter {CurrentChapter + 1}...");
+                    loading.ShowAsync();
+                    await CreateBook();
+                    ChangeChapterEvent(CurrentChapter);
+                    loading.Hide();
+                }
+                else
+                {
+                    ChangeChapterEvent(CurrentChapter);
+                }
                 splitView.IsPaneOpen = false;
             }
         }

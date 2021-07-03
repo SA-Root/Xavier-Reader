@@ -35,6 +35,11 @@
                     <ToggleSwitch x:Name="isAcrylic" 
                                   IsOn="{x:Bind TempGS.isAcrylicOn,Mode=TwoWay}" 
                                   Header="Acrylic Background"/>
+                    <muxc:RadioButtons x:Name="PerformanceOption" MaxColumns="3" Header="Loading Mode" SelectionChanged="PerformanceOption_SelectionChanged">
+                        <x:String>Full Preload</x:String>
+                        <x:String>Per-chapter</x:String>
+                        <x:String>Auto</x:String>
+                    </muxc:RadioButtons>
                     <StackPanel Orientation="Vertical" Margin="0,10,0,0">
                         <ToggleSwitch x:Name="isAutoDark"
                                       IsOn="{x:Bind TempGS.isAutoDark,Mode=TwoWay}"

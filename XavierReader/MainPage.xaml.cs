@@ -1,28 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using System.IO.Compression;
 using Windows.Storage;
-using Windows.Storage.Streams;
-using Windows.UI.Xaml.Documents;
-using System.Collections.ObjectModel;
-using Windows.ApplicationModel.Activation;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Xml;
 using System.Globalization;
 
 
@@ -137,9 +120,6 @@ namespace XavierReader
         {
             if (rich1 != null && flp1.Visibility == Visibility.Visible)
             {
-#if DEBUG
-                Debug.Print("Updating View\n");
-#endif
                 rich1.UpdateLayout();
                 flp1.UpdateLayout();
                 if (rich1.HasOverflowContent)
@@ -425,13 +405,26 @@ namespace XavierReader
                     rich2.Blocks.Add(t);
                     t.FontSize = _FontSize;
                 }
+                rich2.UpdateLayout();
             }
-            rich2.UpdateLayout();
+            else if (NowEpub.LoadMode == EpubLoadMode.PerChapter)
+            {
+                NowEpub.LoadChapter(NowEpub.ChapterPaths[ch]);
+                foreach (var t in NowEpub.Block1)
+                {
+                    rich1.Blocks.Add(t);
+                    t.FontSize = _FontSize;
+                }
+                rich1.UpdateLayout();
+                foreach (var t in NowEpub.Block2)
+                {
+                    rich2.Blocks.Add(t);
+                    t.FontSize = _FontSize;
+                }
+                rich2.UpdateLayout();
+            }
             UpdateView();
             NowEpub.Settings.ChapterProgress = prog;
-#if DEBUG
-            Debug.Print("CurrentChapter: " + NowEpub.Settings.CurrentChapter.ToString() + " prog:" + NowEpub.Settings.ChapterProgress.ToString() + "\n");
-#endif
             TrackPage();
             UpdateProgressDisplay();
             SaveProgress();
@@ -467,9 +460,6 @@ namespace XavierReader
         }
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-#if DEBUG
-            Debug.Print("Unloaded\n");
-#endif
             Window.Current.SizeChanged -= flp2_SizeChanged;
             Startup.DecreaseFontEvent -= DecreaseFont;
             Startup.IncreaseFontEvent -= IncreaseFont;
@@ -505,9 +495,6 @@ namespace XavierReader
             int curw = (int)Window.Current.Bounds.Width, curh = (int)Window.Current.Bounds.Height;
             if (curw != PreviousWidth || curh != PreviousHeight)
             {
-#if DEBUG
-                Debug.Print("SizeChanged pre:" + PreviousWidth.ToString() + "," + PreviousHeight.ToString() + ";ChapterProgress:" + curw.ToString() + "," + curh.ToString() + "\n");
-#endif
                 PreviousHeight = curh;
                 PreviousWidth = curw;
                 Task.Run(async () =>
@@ -515,9 +502,6 @@ namespace XavierReader
                     Thread.Sleep(200);
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-#if DEBUG
-                        Debug.Print("flp2 Size Changed\n");
-#endif
                         if ((flp2.Items.Count >= 1 && flp2.Visibility == Visibility.Visible) || (flp1.Items.Count >= 1 && flp1.Visibility == Visibility.Visible))
                         {
                             UpdateView();
@@ -529,200 +513,3 @@ namespace XavierReader
         }
     }
 }
-/*        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var p in rich1.Blocks)
-            {
-                p.FontSize -= 3;
-            }
-            rich1.UpdateLayout();
-            flp1.UpdateLayout();
-            foreach (var p in rich2.Blocks)
-            {
-                p.FontSize -= 3;
-            }
-            rich2.UpdateLayout();
-            flp2.UpdateLayout();
-            UpdateView();
-            rich1.UpdateLayout();
-            flp1.UpdateLayout();
-            rich2.UpdateLayout();
-            flp2.UpdateLayout();
-            UpdateLayout();
-            var read = ChapterProgress;
-            if (Window.Current.Bounds.Width > 1000)
-            {
-                if (flp2.SelectedIndex > 0)
-                {
-                    flp2.SelectedIndex--;
-                    //flp2.SelectedIndex++;
-                }
-            }
-            else
-            {
-                if (flp1.SelectedIndex > 0)
-                {
-                    flp1.SelectedIndex--;
-                    //flp1.SelectedIndex++;
-                }
-            }
-            ChapterProgress = read;
-            Debug.Print("Previous offset: " + ChapterProgress.ToString() + "\n");
-            TrackPage();
-            button1.IsEnabled = false;
-            test();
-                        //picker从外部读取至buffer,写入应用自己目录下的临时文件后再通过zip读取
-                        var picker = new Windows.Storage.Pickers.FileOpenPicker();
-                        picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.List;
-                        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Downloads;
-                        picker.FileTypeFilter.Add(".epub");
-
-                        Windows.Storage.StorageFile file = await picker.PickSingleFileAsync();
-                        if (file != null)
-                        {
-                            // Application now has read/write access to the picked file
-                            pickResult.Text = "Picked photo: " + file.Name;
-                            IBuffer tmp = await FileIO.ReadBufferAsync(file);
-                            Windows.Storage.StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
-                            Windows.Storage.StorageFile sampleFile = await storageFolder.CreateFileAsync("sample.zip", CreationCollisionOption.ReplaceExisting);
-                            await FileIO.WriteBufferAsync(sampleFile, tmp);
-
-                            pickResult.Text = storageFolder.Path;
-                            var topath = storageFolder.Path + "/sample1";
-                            if (!Directory.Exists(topath))
-                            {
-                                ZipFile.ExtractToDirectory(sampleFile.Path, topath);
-                            }
-
-
-
-                        }
-                        else
-                        {
-                            pickResult.Text = "Operation cancelled.";
-                        }
-                        using (var zip = ZipFile.Open(sampleFile.Path, 0))
-                        {
-                            var entry = zip.GetEntry("text/part0000_split_000.html");
-                            using (var stream = entry.Open())
-                            {
-                                byte[] res = new byte[entry.Length];
-                                stream.Read(res, 0, (int)entry.Length);
-                                var str = System.Text.Encoding.Default.GetString(res);
-                                //web.NavigateToString(str);
-
-                            }
-                            entry = zip.GetEntry("titlepage.xhtml");
-                            using (var stream = entry.Open())
-                            {
-                                byte[] res = new byte[entry.Length];
-                                stream.Read(res, 0, (int)entry.Length);
-                                var str = System.Text.Encoding.Default.GetString(res);
-                                web.NavigateToString(str);
-
-                            }
-                        }
-        }
-        private void button2_Click(object sender, RoutedEventArgs e)
-        {
-            if (RequestedTheme == ElementTheme.Dark)
-            {
-                RequestedTheme = ElementTheme.Light;
-            }
-            else
-            {
-                RequestedTheme = ElementTheme.Dark;
-            }
-            foreach (var p in rich1.Blocks)
-            {
-                p.FontSize += 3;
-            }
-            rich1.UpdateLayout();
-            flp1.UpdateLayout();
-            foreach (var p in rich2.Blocks)
-            {
-                p.FontSize += 3;
-            }
-            rich2.UpdateLayout();
-            flp2.UpdateLayout();
-            UpdateView();
-            rich1.UpdateLayout();
-            flp1.UpdateLayout();
-            rich2.UpdateLayout();
-            flp2.UpdateLayout();
-            UpdateLayout();
-            var read = ChapterProgress;
-            if (Window.Current.Bounds.Width > 1000)
-            {
-                if (flp2.SelectedIndex > 0)
-                {
-                    flp2.SelectedIndex--;
-                    //flp2.SelectedIndex++;
-                }
-            }
-            else
-            {
-                if (flp1.SelectedIndex > 0)
-                {
-                    flp1.SelectedIndex--;
-                    //flp1.SelectedIndex++;
-                }
-            }
-            ChapterProgress = read;
-            Debug.Print("Previous offset: " + ChapterProgress.ToString() + "\n");
-            TrackPage();
-        }*/
-/*private void test()
-{
-    for (int i = 0; i < 200; ++i)
-    {
-        var paragraph = new Paragraph();
-        Run run = new Run();
-        run.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
-        run.FontWeight = Windows.UI.Text.FontWeights.Light;
-        run.Text = "This is some";
-
-        Span span = new Span();
-        span.FontWeight = Windows.UI.Text.FontWeights.SemiBold;
-
-        Run run1 = new Run();
-        run1.FontStyle = Windows.UI.Text.FontStyle.Italic;
-        run1.Text = " sample text to ";
-
-        Run run2 = new Run();
-        run2.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
-        run2.Text = " demonstrate some properties " + i.ToString();
-
-        span.Inlines.Add(run1);
-        span.Inlines.Add(run2);
-        paragraph.Inlines.Add(run);
-        paragraph.Inlines.Add(span);
-        rich1.Blocks.Add(paragraph);
-        var paragraph2 = new Paragraph();
-        run = new Run();
-        run.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
-        run.FontWeight = Windows.UI.Text.FontWeights.Light;
-        run.Text = "This is some";
-
-        span = new Span();
-        span.FontWeight = Windows.UI.Text.FontWeights.SemiBold;
-
-        run1 = new Run();
-        run1.FontStyle = Windows.UI.Text.FontStyle.Italic;
-        run1.Text = " sample text to ";
-
-        run2 = new Run();
-        run2.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
-        run2.Text = " demonstrate some properties " + i.ToString();
-
-        span.Inlines.Add(run1);
-        span.Inlines.Add(run2);
-        paragraph2.Inlines.Add(run);
-        paragraph2.Inlines.Add(span);
-        rich2.Blocks.Add(paragraph2);
-    }
-    rich1.UpdateLayout();
-    rich2.UpdateLayout();
-    //pickResult.Text = rich1.Blocks.Count.ToString();
-    UpdateView();
-}*/

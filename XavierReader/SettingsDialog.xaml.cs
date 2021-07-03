@@ -44,6 +44,18 @@ namespace XavierReader
             }
             ScrViewer.Height = Window.Current.Bounds.Height * 0.75;
             TempGS = gs;
+            if (TempGS.LoadMode == EpubLoadMode.Full)
+            {
+                PerformanceOption.SelectedIndex = 0;
+            }
+            else if (TempGS.LoadMode == EpubLoadMode.PerChapter)
+            {
+                PerformanceOption.SelectedIndex = 1;
+            }
+            else if (TempGS.LoadMode == EpubLoadMode.Auto)
+            {
+                PerformanceOption.SelectedIndex = 2;
+            }
             if (TempGS.isAutoDark)
             {
                 AutoDarkStartTime.Visibility = Visibility.Visible;
@@ -90,6 +102,22 @@ namespace XavierReader
             {
                 AutoDarkStartTime.Visibility = Visibility.Collapsed;
                 AutoDarkEndTime.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void PerformanceOption_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (PerformanceOption.SelectedIndex == 0)
+            {
+                TempGS.LoadMode = EpubLoadMode.Full;
+            }
+            else if (PerformanceOption.SelectedIndex == 1)
+            {
+                TempGS.LoadMode = EpubLoadMode.PerChapter;
+            }
+            else if (PerformanceOption.SelectedIndex == 2)
+            {
+                TempGS.LoadMode = EpubLoadMode.Auto;
             }
         }
     }

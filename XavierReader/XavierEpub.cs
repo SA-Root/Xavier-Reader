@@ -159,7 +159,7 @@ namespace XavierReader
         public double ChapterProgress { get; set; }
         public DateTime LastReadTime { get; set; }
         public string[] ChapterTitles { get; set; }
-        private string[] ChapterPaths { get; set; }
+        public string[] ChapterPaths { get; set; }
         /// <summary>
         /// Path to the cover image file
         /// </summary>
@@ -201,9 +201,8 @@ namespace XavierReader
         /// <param name="loadMode">Specify epub file loading mode</param>
         /// <exception cref="EpubExtractionFailureException"/>
         /// <exception cref="EpubContentLoadFailureException"/>
-        public async Task LoadBook(StorageFile storageFile, EpubLoadMode loadMode = EpubLoadMode.Full)
+        public async Task LoadBook(StorageFile storageFile)
         {
-            LoadMode = loadMode;
             //copy to LocalState
             var tmp = FileIO.ReadBufferAsync(storageFile);
             var newFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(storageFile.Name, CreationCollisionOption.ReplaceExisting);
@@ -444,6 +443,11 @@ namespace XavierReader
                 BC1.Add(B1);
                 BC2.Add(B2);
             }
+            else if (LoadMode == EpubLoadMode.PerChapter)
+            {
+                Block1 = B1;
+                Block2 = B2;
+            }
         }
         /// <summary>
         /// 
@@ -602,10 +606,9 @@ namespace XavierReader
         /// </summary>
         /// <param name="epub">Epub file selected by FilePicker</param>
         /// <param name="loadMode">Specify epub file loading mode</param>
-        public void LoadBook(string epub, EpubLoadMode loadMode = EpubLoadMode.Full)
+        public void LoadBook(string epub)
         {
             ContentFolder = epub;
-            LoadMode = loadMode;
             ExtractedPath = ApplicationData.Current.LocalFolder.Path + "/tmp/" + ContentFolder;
             LoadBookInfo();
             LoadChapters();
@@ -644,6 +647,8 @@ namespace XavierReader
         public bool isAutoDark { get; set; }
         public TimeSpan AutoDarkStartTime { get; set; }
         public TimeSpan AutoDarkEndTime { get; set; }
+        public HashSet<string> RatingFilter { get; set; }
+        public EpubLoadMode LoadMode { get; set; }
     }
     public struct MsgParam
     {

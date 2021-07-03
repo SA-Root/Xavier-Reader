@@ -2,23 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
 using System.Collections.ObjectModel;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.Storage;
-using Windows.Media.Playback;
 using Windows.UI;
-using System.Xml;
-using System.Diagnostics;
-using System.Globalization;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -36,10 +26,51 @@ namespace XavierReader
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             Settings = e.Parameter as GlobalSettings;
+            if (Settings.RatingFilter.Contains("PG13"))
+            {
+                PG13Flyout.IsChecked = true;
+            }
+            else
+            {
+                PG13Flyout.IsChecked = false;
+            }
+            if (Settings.RatingFilter.Contains("G"))
+            {
+                GFlyout.IsChecked = true;
+            }
+            else
+            {
+                GFlyout.IsChecked = false;
+            }
+            if (Settings.RatingFilter.Contains("PG"))
+            {
+                PGFlyout.IsChecked = true;
+            }
+            else
+            {
+                PGFlyout.IsChecked = false;
+            }
+            if (Settings.RatingFilter.Contains("R"))
+            {
+                RFlyout.IsChecked = true;
+            }
+            else
+            {
+                RFlyout.IsChecked = false;
+            }
+            if (Settings.RatingFilter.Contains("NC17"))
+            {
+                NC17Flyout.IsChecked = true;
+            }
+            else
+            {
+                NC17Flyout.IsChecked = false;
+            }
+            LoadRecent();
         }
         private async void LoadRecent()
         {
-            var CurrentBooks = new ObservableCollection<BookImage>();
+            AllBooks = new List<BookImage>();
             var dir = new DirectoryInfo(ApplicationData.Current.LocalFolder.Path + "/tmp");
             if (!dir.Exists)
             {
@@ -49,7 +80,6 @@ namespace XavierReader
             }
             else
             {
-                AllBooks = new List<BookImage>();
                 foreach (var f in dir.GetDirectories())
                 {
                     var bi = new BookImage
@@ -63,17 +93,13 @@ namespace XavierReader
                     AllBooks.Add(bi);
                 }
                 var t = AllBooks.OrderByDescending(item => item.Settings.LastReadTime);
-                foreach (var i in t)
-                {
-                    CurrentBooks.Add(i);
-                }
+
             }
-            ImageGrid.ItemsSource = CurrentBooks;
+            ReloadBooks();
         }
         public RecentPage()
         {
             this.InitializeComponent();
-            LoadRecent();
         }
         private void ImageGrid_ItemClick(object sender, ItemClickEventArgs e)
         {
@@ -163,6 +189,11 @@ namespace XavierReader
         }
         private void AllRatingFlyout_Click(object sender, RoutedEventArgs e)
         {
+            Settings.RatingFilter.Add("PG");
+            Settings.RatingFilter.Add("PG13");
+            Settings.RatingFilter.Add("G");
+            Settings.RatingFilter.Add("R");
+            Settings.RatingFilter.Add("NC17");
             ObservableCollection<BookImage> newBooks;
             if (AllRatingFlyout.IsChecked == true)
             {
@@ -188,10 +219,13 @@ namespace XavierReader
             }
             ImageGrid.ItemsSource = newBooks?.OrderByDescending(item => item.Settings.LastReadTime);
         }
+        /// <summary>
+        /// Load books from AllBooks, filtered
+        /// </summary>
         private void ReloadBooks()
         {
             var newBooks = new ObservableCollection<BookImage>();
-            if (NC17Flyout.IsChecked == true)
+            if (Settings.RatingFilter.Contains("NC17"))
             {
                 var tmp = from c in AllBooks
                           where c.Settings.Rating == "NC17"
@@ -202,7 +236,7 @@ namespace XavierReader
                     newBooks.Add(i);
                 }
             }
-            if (GFlyout.IsChecked == true)
+            if (Settings.RatingFilter.Contains("G"))
             {
                 var tmp = from c in AllBooks
                           where c.Settings.Rating == "G"
@@ -213,7 +247,7 @@ namespace XavierReader
                     newBooks.Add(i);
                 }
             }
-            if (PGFlyout.IsChecked == true)
+            if (Settings.RatingFilter.Contains("PG"))
             {
                 var tmp = from c in AllBooks
                           where c.Settings.Rating == "PG"
@@ -224,7 +258,7 @@ namespace XavierReader
                     newBooks.Add(i);
                 }
             }
-            if (RFlyout.IsChecked == true)
+            if (Settings.RatingFilter.Contains("R"))
             {
                 var tmp = from c in AllBooks
                           where c.Settings.Rating == "R"
@@ -235,7 +269,7 @@ namespace XavierReader
                     newBooks.Add(i);
                 }
             }
-            if (PG13Flyout.IsChecked == true)
+            if (Settings.RatingFilter.Contains("PG13"))
             {
                 var tmp = from c in AllBooks
                           where c.Settings.Rating == "PG13"
@@ -246,11 +280,7 @@ namespace XavierReader
                     newBooks.Add(i);
                 }
             }
-            if (GFlyout.IsChecked &&
-                PG13Flyout.IsChecked &&
-                PGFlyout.IsChecked &&
-                NC17Flyout.IsChecked &&
-                RFlyout.IsChecked)
+            if (Settings.RatingFilter.Count == 5)
             {
                 AllRatingFlyout.IsChecked = true;
             }
@@ -262,6 +292,46 @@ namespace XavierReader
         }
         private void NC17Flyout_Click(object sender, RoutedEventArgs e)
         {
+            if (NC17Flyout.IsChecked)
+            {
+                Settings.RatingFilter.Add("NC17");
+            }
+            else
+            {
+                Settings.RatingFilter.Remove("NC17");
+            }
+            if (GFlyout.IsChecked)
+            {
+                Settings.RatingFilter.Add("G");
+            }
+            else
+            {
+                Settings.RatingFilter.Remove("G");
+            }
+            if (PGFlyout.IsChecked)
+            {
+                Settings.RatingFilter.Add("PG");
+            }
+            else
+            {
+                Settings.RatingFilter.Remove("PG");
+            }
+            if (PG13Flyout.IsChecked)
+            {
+                Settings.RatingFilter.Add("PG13");
+            }
+            else
+            {
+                Settings.RatingFilter.Remove("PG13");
+            }
+            if (RFlyout.IsChecked)
+            {
+                Settings.RatingFilter.Add("R");
+            }
+            else
+            {
+                Settings.RatingFilter.Remove("R");
+            }
             ReloadBooks();
         }
     }
