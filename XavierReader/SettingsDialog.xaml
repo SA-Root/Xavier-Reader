@@ -18,7 +18,7 @@
     VerticalContentAlignment="Center" 
     HorizontalAlignment="Center" 
     VerticalAlignment="Center" 
-    CornerRadius="8,8,8,8" SizeChanged="ContentDialog_SizeChanged">
+    CornerRadius="8,8,8,8" Unloaded="ContentDialog_Unloaded" Width="Auto">
     <ContentDialog.Resources>
     </ContentDialog.Resources>
     <Grid Width="Auto">
@@ -29,7 +29,7 @@
                       HorizontalScrollMode="Disabled" 
                       HorizontalAlignment="Center" 
                       VerticalAlignment="Center" 
-                      Width="550">
+                      Width="600">
             <ScrollViewer.Content>
                 <StackPanel Orientation="Vertical">
                     <ToggleSwitch x:Name="isAcrylic" 

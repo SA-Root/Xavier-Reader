@@ -36,7 +36,7 @@ namespace XavierReader
 
         private void ContentDialog_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            WNPage.Page_SizeChanged();
+            WNPage.Page_SizeChanged(e);
         }
     }
 }

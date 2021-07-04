@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
+using Windows.UI.Xaml.Media.Animation;
 
 namespace XavierReader
 {
@@ -82,7 +83,7 @@ namespace XavierReader
             RecentPage.OpenRecentBookEvent += OpenRecentBook;
             Window.Current.SizeChanged += CurrentWindow_SizeChanged;
             LoadSettings();
-            MainFrame.Navigate(typeof(RecentPage), Settings);
+            MainFrame.Navigate(typeof(RecentPage), Settings, new DrillInNavigationTransitionInfo());
             if (Window.Current.Bounds.Width < 1200)
             {
                 SetMiniState();
@@ -128,19 +129,13 @@ namespace XavierReader
             SwitchViewButton.IsEnabled = false;
             BookInfoButton.IsEnabled = false;
         }
-        private async void OpenRecentBook(string ContentFolder)
+        private void OpenRecentBook(XavierEpubFile epub)
         {
-            CurrentBook = new XavierEpubFile()
-            {
-                LoadMode = Settings.LoadMode
-            };
-            var dia = new LoadingBook(GetAppTheme());
-            await dia.ShowAsync(CurrentBook, ContentFolder);
+            CurrentBook = epub;
             CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
             EnableReadingControls();
             UpdateSidebarInfo();
-            MainFrame.Navigate(typeof(MainPage), CurrentBook);
-            dia.Hide();
+            MainFrame.Navigate(typeof(MainPage), CurrentBook, new DrillInNavigationTransitionInfo());
         }
         private void ButtonFeedback2(int fontsize)
         {
@@ -196,7 +191,7 @@ namespace XavierReader
                 CurrentBook.DualPageView = SwitchViewButton.IsChecked == true;
                 EnableReadingControls();
                 UpdateSidebarInfo();
-                MainFrame.Navigate(typeof(MainPage), CurrentBook);
+                MainFrame.Navigate(typeof(MainPage), CurrentBook, new DrillInNavigationTransitionInfo());
                 dia.Hide();
             }
         }
@@ -269,7 +264,7 @@ namespace XavierReader
         private void HomePageButton_Click(object sender, RoutedEventArgs e)
         {
             DisableReadingControls();
-            MainFrame.Navigate(typeof(RecentPage), Settings);
+            MainFrame.Navigate(typeof(RecentPage), Settings, new DrillInNavigationTransitionInfo());
         }
         private void SwitchViewButton_Click(object sender, RoutedEventArgs e)
         {

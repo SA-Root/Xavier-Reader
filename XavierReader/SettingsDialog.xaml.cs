@@ -34,6 +34,7 @@ namespace XavierReader
         public SettingsDialog(GlobalSettings gs)
         {
             this.InitializeComponent();
+            Window.Current.SizeChanged += ContentDialog_SizeChanged;
             if (gs.isDark)
             {
                 RequestedTheme = ElementTheme.Dark;
@@ -42,7 +43,7 @@ namespace XavierReader
             {
                 RequestedTheme = ElementTheme.Light;
             }
-            ScrViewer.Height = Window.Current.Bounds.Height * 0.75;
+            ScrViewer.Height = Window.Current.Bounds.Height * 0.7;
             TempGS = gs;
             if (TempGS.LoadMode == EpubLoadMode.Full)
             {
@@ -79,16 +80,9 @@ namespace XavierReader
         {
         }
 
-        private void ContentDialog_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void ContentDialog_SizeChanged(object sender, WindowSizeChangedEventArgs e)
         {
-            Task.Run(async () =>
-            {
-                Thread.Sleep(100);
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    ScrViewer.Height = Window.Current.Bounds.Height * 0.75;
-                });
-            });
+            ScrViewer.Height = e.Size.Height * 0.7;
         }
 
         private void isAutoDark_Toggled(object sender, RoutedEventArgs e)
@@ -119,6 +113,11 @@ namespace XavierReader
             {
                 TempGS.LoadMode = EpubLoadMode.Auto;
             }
+        }
+
+        private void ContentDialog_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Window.Current.SizeChanged -= ContentDialog_SizeChanged;
         }
     }
 }

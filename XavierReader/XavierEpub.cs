@@ -133,7 +133,8 @@ namespace XavierReader
     {
         Full = 0,
         PerChapter = 1,
-        Auto = 2
+        Auto = 2,
+        InfoOnly = 3
     }
     public class XavierEpubFile
     {
@@ -500,6 +501,7 @@ namespace XavierReader
         /// <param name="title">Raw title</param>
         private void SplitTitle(string title)
         {
+            LastUpdateTime = DateTime.MinValue;
             try
             {
                 var tmp = new StringBuilder(title);
@@ -507,11 +509,11 @@ namespace XavierReader
                 var tmpdate = tmp.ToString();
                 tmpdate = tmpdate.Substring(0, tmpdate.IndexOf(' ')).Replace('-', '/');
                 LastUpdateTime = DateTime.ParseExact(tmpdate, "d", CultureInfo.CreateSpecificCulture("ja-JP"));
-                tmp.Remove(0, tmpdate.IndexOf(' ') + 1);//removed date
-                                                        //split rating level
+                tmp = tmp.Remove(0, tmpdate.Length + 1);//removed date
+                //split rating level
                 tmpdate = tmp.ToString();
-                var leftBracket = tmpdate.IndexOf('(');
-                var rightBracket = tmpdate.IndexOf(')');
+                var leftBracket = tmpdate.LastIndexOf('(');
+                var rightBracket = tmpdate.LastIndexOf(')');
                 var rating = tmpdate.Substring(leftBracket + 8, rightBracket - leftBracket - 8);
                 switch (rating)
                 {
@@ -540,7 +542,6 @@ namespace XavierReader
             }
             catch (Exception)
             {
-                LastUpdateTime = DateTime.MinValue;
                 Title = title;
             }
         }

@@ -25,7 +25,13 @@
                 <ScrollViewer.Content>
                     <TextBlock xml:space="preserve" Padding="10,10,10,10" FontSize="16" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch" TextWrapping="WrapWholeWords" 
                                VerticalAlignment="Stretch"
-                               >Version 2.2.93:
+                               >Version 2.3.101:
+    Added some animations
+    Added book info page for books on the shelf
+    Fixed title split issues
+    Improved dialog resize method
+                        
+Version 2.2.93:
     Added fast load mode
     Now remembers bookshelf filter temporarily
                         

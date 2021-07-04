@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     RequestedTheme="Light" NavigationCacheMode="Disabled" Unloaded="Page_Unloaded">
-    <Grid>
+    <Grid x:Name="MainGridIn" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
         <Grid.BackgroundTransition>
             <BrushTransition />
@@ -18,12 +18,14 @@
                 <VisualState x:Name="Default">
                     <VisualState.Setters>
                         <Setter Target="MainGrid.Background" Value="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
+                        <Setter Target="MainGridIn.Background" Value="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
                         <Setter Target="MainFrame.Background" Value="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="Acrylic">
                     <VisualState.Setters>
                         <Setter Target="MainGrid.Background" Value="{ThemeResource SystemControlAcrylicWindowBrush}"/>
+                        <Setter Target="MainGridIn.Background" Value="{ThemeResource SystemControlAcrylicWindowBrush}"/>
                         <Setter Target="MainFrame.Background" Value="{ThemeResource SystemControlAcrylicWindowBrush}"/>
                     </VisualState.Setters>
                 </VisualState>
@@ -103,7 +105,13 @@
                 </Grid>
             </SplitView.Pane>
             <Frame x:Name="MainFrame" Grid.Row="1" CacheSize="0" >
+                <Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <NavigationThemeTransition  />
+                    </TransitionCollection>
+                </Frame.ContentTransitions>
             </Frame>
         </SplitView>
+        
     </Grid>
 </Page>

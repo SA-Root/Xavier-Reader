@@ -51,29 +51,5 @@ namespace XavierReader
             }
             return;
         }
-        public async Task ShowAsync(XavierEpubFile epub, string str)
-        {
-            var ret = base.ShowAsync();
-            await CreateBook();
-            try
-            {
-                epub.LoadBook(str);
-            }
-            catch (EpubExtractionFailureException)
-            {
-                txt.Text = "Failed to load book.Cleaning up...";
-                epub.CleanUp();
-                Thread.Sleep(2000);
-                return;
-            }
-            catch (EpubContentLoadFailureException)
-            {
-                txt.Text = "Failed to load book.Cleaning up...";
-                epub.CleanUp();
-                Thread.Sleep(2000);
-                return;
-            }
-            return;
-        }
     }
 }

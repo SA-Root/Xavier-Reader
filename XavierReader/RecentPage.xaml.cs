@@ -11,6 +11,9 @@ using Windows.Storage;
 using Windows.UI;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Globalization;
+using Windows.UI.Xaml.Media.Imaging;
+using Windows.UI.Xaml.Media.Animation;
 
 namespace XavierReader
 {
@@ -19,10 +22,11 @@ namespace XavierReader
     /// </summary>
     public sealed partial class RecentPage : Page
     {
-        public static event Action<string> OpenRecentBookEvent;
+        public static event Action<XavierEpubFile> OpenRecentBookEvent;
         //All recent books
         private List<BookImage> AllBooks { get; set; }
         private GlobalSettings Settings { get; set; }
+        private BookImage DetailPageBook { get; set; }
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             Settings = e.Parameter as GlobalSettings;
@@ -103,8 +107,37 @@ namespace XavierReader
         }
         private void ImageGrid_ItemClick(object sender, ItemClickEventArgs e)
         {
-            var book = e.ClickedItem as BookImage;
-            OpenRecentBookEvent(book.TmpFolderName);
+            DetailPageBook = e.ClickedItem as BookImage;
+            var book = new XavierEpubFile()
+            {
+                LoadMode = EpubLoadMode.InfoOnly
+            };
+            ConnectedAnimation animation = null;
+            var width = Window.Current.Bounds.Width;
+            var height = Window.Current.Bounds.Height;
+            SmokeGridContent.Width = width * 0.6;
+            SmokeGridContent.Height = height * 0.6;
+            SmokeGrid.Visibility = Visibility.Visible;
+            if (ImageGrid.ContainerFromItem(e.ClickedItem) is GridViewItem container)
+            {
+                var _storedItem = container.Content as BookImage;
+                animation = ImageGrid.PrepareConnectedAnimation("forwardAnimation", _storedItem, "ConnectedImage");
+            }
+            animation.TryStart(DetailPageImage);
+            book.LoadBook(DetailPageBook.TmpFolderName);
+            DetailPageLoadingGrid.Visibility = Visibility.Collapsed;
+            DetailPageImage.Source = new BitmapImage(new Uri(DetailPageBook.ImageLocation));
+            DetailPageTitle.Text = book.Title;
+            ToolTipService.SetToolTip(DetailPageTitle, new ToolTip() { Content = book.Title });
+            DetailPageAuthor.Text = book.Author;
+            ToolTipService.SetToolTip(DetailPageAuthor, new ToolTip() { Content = book.Author });
+            DetailPageRating.Text = book.Rating.ToString();
+            ToolTipService.SetToolTip(DetailPageRating, new ToolTip() { Content = book.Rating.ToString() });
+            DetailPageLastUpdateTime.Text = book.LastUpdateTime.ToString("g", new CultureInfo("en-US"));
+            ToolTipService.SetToolTip(DetailPageLastUpdateTime, new ToolTip() { Content = DetailPageLastUpdateTime.Text });
+            DetailPageTotalChapters.Text = book.TotalChapters.ToString();
+            DetailPageProgress.Text = string.Format("{0:f2}%", (book.CurrentChapter + book.ChapterProgress) / book.TotalChapters * 100);
+            DetailPageReadBookButton.IsEnabled = true;
         }
         private void ManageBooksButton_Click(object sender, RoutedEventArgs e)
         {
@@ -225,60 +258,13 @@ namespace XavierReader
         private void ReloadBooks()
         {
             var newBooks = new ObservableCollection<BookImage>();
-            if (Settings.RatingFilter.Contains("NC17"))
+            var tmp = from c in AllBooks
+                      where Settings.RatingFilter.Contains(c.Settings.Rating)
+                      select c;
+            var selected = tmp.ToArray();
+            foreach (var i in selected)
             {
-                var tmp = from c in AllBooks
-                          where c.Settings.Rating == "NC17"
-                          select c;
-                var nc17 = tmp.ToList();
-                foreach (var i in nc17)
-                {
-                    newBooks.Add(i);
-                }
-            }
-            if (Settings.RatingFilter.Contains("G"))
-            {
-                var tmp = from c in AllBooks
-                          where c.Settings.Rating == "G"
-                          select c;
-                var g = tmp.ToList();
-                foreach (var i in g)
-                {
-                    newBooks.Add(i);
-                }
-            }
-            if (Settings.RatingFilter.Contains("PG"))
-            {
-                var tmp = from c in AllBooks
-                          where c.Settings.Rating == "PG"
-                          select c;
-                var pg = tmp.ToList();
-                foreach (var i in pg)
-                {
-                    newBooks.Add(i);
-                }
-            }
-            if (Settings.RatingFilter.Contains("R"))
-            {
-                var tmp = from c in AllBooks
-                          where c.Settings.Rating == "R"
-                          select c;
-                var r = tmp.ToList();
-                foreach (var i in r)
-                {
-                    newBooks.Add(i);
-                }
-            }
-            if (Settings.RatingFilter.Contains("PG13"))
-            {
-                var tmp = from c in AllBooks
-                          where c.Settings.Rating == "PG13"
-                          select c;
-                var pg13 = tmp.ToList();
-                foreach (var i in pg13)
-                {
-                    newBooks.Add(i);
-                }
+                newBooks.Add(i);
             }
             if (Settings.RatingFilter.Count == 5)
             {
@@ -333,6 +319,43 @@ namespace XavierReader
                 Settings.RatingFilter.Remove("R");
             }
             ReloadBooks();
+        }
+
+        private async void DetailPageReadBookButton_Click(object sender, RoutedEventArgs e)
+        {
+            DetailPageReadBookButton.IsEnabled = false;
+            DetailPageLoadingGrid.Visibility = Visibility.Visible;
+            await CreateBook();
+            var epub = new XavierEpubFile();
+            epub.LoadMode = Settings.LoadMode;
+            try
+            {
+                epub.LoadBook(DetailPageBook.TmpFolderName);
+            }
+            catch (EpubExtractionFailureException)
+            {
+                DetailPageLoadingStatus.Text = "Failed to load book.Cleaning up...";
+                epub.CleanUp();
+                DetailPageLoadingStatus.Text = "Failed to load book.";
+                return;
+            }
+            catch (EpubContentLoadFailureException)
+            {
+                DetailPageLoadingStatus.Text = "Failed to load book.Cleaning up...";
+                epub.CleanUp();
+                DetailPageLoadingStatus.Text = "Failed to load book.";
+                return;
+            }
+            OpenRecentBookEvent(epub);
+        }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (SmokeGrid.Visibility == Visibility.Visible)
+            {
+                SmokeGridContent.Width = e.NewSize.Width * 0.6;
+                SmokeGridContent.Height = e.NewSize.Height * 0.6;
+            }
         }
     }
 }

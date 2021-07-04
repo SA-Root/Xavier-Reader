@@ -30,22 +30,15 @@ namespace XavierReader
     /// </summary>
     public sealed partial class WhatsNewPage : Page
     {
-        private string Version = "Version: 2.2.93";
+        private string Version = "Version: 2.3.101";
         public WhatsNewPage()
         {
             this.InitializeComponent();
             ScrViewer.Height = Window.Current.Bounds.Height * 0.5;
         }
-        public void Page_SizeChanged()
+        public void Page_SizeChanged(SizeChangedEventArgs e)
         {
-            Task.Run(async () =>
-            {
-                Thread.Sleep(50);
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    ScrViewer.Height = Window.Current.Bounds.Height * 0.5;
-                });
-            });
+            ScrViewer.Height = e.NewSize.Height * 0.5;
         }
     }
 }
