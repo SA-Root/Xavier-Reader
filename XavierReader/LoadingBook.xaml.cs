@@ -39,14 +39,14 @@ namespace XavierReader
             {
                 txt.Text = "Failed to load book.Cleaning up...";
                 epub.CleanUp();
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 return;
             }
             catch (EpubContentLoadFailureException)
             {
                 txt.Text = "Failed to load book.Cleaning up...";
                 epub.CleanUp();
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 return;
             }
             return;

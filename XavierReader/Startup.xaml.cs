@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Diagnostics;
 using Windows.UI.Xaml.Media.Animation;
 
 namespace XavierReader
@@ -219,11 +220,11 @@ namespace XavierReader
             --CurrentChapter;
             if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
             {
-                var loading = new LoadingBook(Settings.isDark, $"Loading Chapter {CurrentChapter + 1}...");
-                loading.ShowAsync();
+                SmokeGrid.Visibility = Visibility.Visible;
+                LoadingText.Text = $"Loading Chapter {CurrentChapter + 1}...";
                 await CreateBook();
                 ChangeChapterEvent(CurrentChapter);
-                loading.Hide();
+                SmokeGrid.Visibility = Visibility.Collapsed;
             }
             else
             {
@@ -236,11 +237,11 @@ namespace XavierReader
             ++CurrentChapter;
             if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
             {
-                var loading = new LoadingBook(Settings.isDark, $"Loading Chapter {CurrentChapter + 1}...");
-                loading.ShowAsync();
+                SmokeGrid.Visibility = Visibility.Visible;
+                LoadingText.Text = $"Loading Chapter {CurrentChapter + 1}...";
                 await CreateBook();
                 ChangeChapterEvent(CurrentChapter);
-                loading.Hide();
+                SmokeGrid.Visibility = Visibility.Collapsed;
             }
             else
             {
@@ -478,18 +479,18 @@ namespace XavierReader
             RecentPage.OpenRecentBookEvent -= OpenRecentBook;
             Window.Current.SizeChanged -= CurrentWindow_SizeChanged;
         }
-        private async void SideContents_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SideContents_ItemClick(object sender, ItemClickEventArgs e)
         {
             if (SideContents.SelectedIndex >= 0 && ChangeChapterEvent != null)
             {
                 CurrentChapter = SideContents.SelectedIndex;
                 if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
                 {
-                    var loading = new LoadingBook(Settings.isDark, $"Loading Chapter {CurrentChapter + 1}...");
-                    loading.ShowAsync();
+                    SmokeGrid.Visibility = Visibility.Visible;
+                    LoadingText.Text = $"Loading Chapter {CurrentChapter + 1}...";
                     await CreateBook();
                     ChangeChapterEvent(CurrentChapter);
-                    loading.Hide();
+                    SmokeGrid.Visibility = Visibility.Collapsed;
                 }
                 else
                 {

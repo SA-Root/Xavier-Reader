@@ -92,7 +92,9 @@
                         </StackPanel>
                         <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="0,5,0,5" Height="24">Contents:</TextBlock>
                         <ScrollViewer x:Name="SideScroller" VerticalScrollMode="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="5000" Height="300">
-                            <ListView x:Name="SideContents" SelectionChanged="SideContents_SelectionChanged" SingleSelectionFollowsFocus="True">
+                            <ListView x:Name="SideContents"
+                                      SingleSelectionFollowsFocus="True" 
+                                      ItemClick="SideContents_ItemClick">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="x:String">
                                         <TextBlock Text="{x:Bind}"
@@ -112,6 +114,25 @@
                 </Frame.ContentTransitions>
             </Frame>
         </SplitView>
-        
+        <Grid x:Name="SmokeGrid" HorizontalAlignment="Stretch" 
+              VerticalAlignment="Stretch" Visibility="Collapsed" 
+              Grid.RowSpan="2" >
+            <Grid.Background>
+                <SolidColorBrush Color="{ThemeResource SystemChromeAltHighColor}" Opacity="0.8" />
+            </Grid.Background>
+            <Grid CornerRadius="4,4,4,4" 
+                      BorderThickness="1" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center" 
+                      BorderBrush="{ThemeResource SystemAccentColor}"
+                      Background="{ThemeResource SystemControlAcrylicWindowBrush}" 
+                      Width="330" Height="150">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <muxc:ProgressRing Width="60" Height="60" Margin="15,0,0,0"></muxc:ProgressRing>
+                    <TextBlock x:Name="LoadingText" FontWeight="Bold" FontSize="20" 
+                               VerticalAlignment="Center" Margin="15,0,0,0"></TextBlock>
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

@@ -70,70 +70,80 @@
             <Grid.Background>
                 <SolidColorBrush Color="{ThemeResource SystemChromeAltHighColor}" Opacity="0.8" />
             </Grid.Background>
-            <ScrollViewer x:Name="SmokeGridContent"
+            <Grid CornerRadius="4,4,4,4" 
+                      BorderThickness="1" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center" 
+                      BorderBrush="{ThemeResource SystemAccentColor}"
+                      Background="{ThemeResource SystemControlAcrylicWindowBrush}" Width="900" Height="600">
+                <ScrollViewer x:Name="SmokeGridContent"
                 HorizontalScrollBarVisibility="Disabled" 
-                      VerticalScrollBarVisibility="Visible" 
+                      VerticalScrollBarVisibility="Auto" 
                       VerticalScrollMode="Enabled" 
                       HorizontalScrollMode="Disabled" 
                       HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch" Width="900" Height="600">
-                <Grid CornerRadius="4,4,4,4" 
-                      BorderThickness="1" 
-                      HorizontalAlignment="Stretch" 
-                      VerticalAlignment="Stretch" 
-                      BorderBrush="{ThemeResource SystemAccentColor}"
-                      Background="{ThemeResource SystemControlAcrylicWindowBrush}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="4*"/>
-                        <ColumnDefinition Width="6*"/>
-                    </Grid.ColumnDefinitions>
-                    <Image x:Name="DetailPageImage" Margin="10,10,10,10"></Image>
-                    <Grid Grid.Column="1">
-                        <StackPanel Orientation="Vertical" Padding="20,20,20,20">
-                            <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
-                                <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Title:</TextBlock>
-                                <TextBlock x:Name="DetailPageTitle" FontSize="24"
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="4*"/>
+                            <ColumnDefinition Width="6*"/>
+                        </Grid.ColumnDefinitions>
+                        <Image x:Name="DetailPageImage" Margin="10,10,10,10"></Image>
+                        <Grid Grid.Column="1">
+                            <StackPanel Orientation="Vertical" Padding="20,20,20,20">
+                                <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
+                                    <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Title:</TextBlock>
+                                    <TextBlock x:Name="DetailPageTitle" FontSize="24"
                                            >Title stub</TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
-                                <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Author:</TextBlock>
-                                <TextBlock x:Name="DetailPageAuthor" FontSize="24">Author stub</TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
-                                <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Rating:</TextBlock>
-                                <TextBlock x:Name="DetailPageRating" FontSize="24">Rating stub</TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
-                                <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Total chapters:</TextBlock>
-                                <TextBlock x:Name="DetailPageTotalChapters" FontSize="24">Chapter count stub</TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
-                                <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Last Update Time:</TextBlock>
-                                <TextBlock x:Name="DetailPageLastUpdateTime" FontSize="24">LUT stub</TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
-                                <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Your progress:</TextBlock>
-                                <TextBlock x:Name="DetailPageProgress" FontSize="24">LUT stub</TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Vertical" Padding="5,5,5,5" Margin="0,5,0,0">
-                                <Button x:Name="DetailPageReadBookButton" Width="200" Height="40"
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
+                                    <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Author:</TextBlock>
+                                    <TextBlock x:Name="DetailPageAuthor" FontSize="24">Author stub</TextBlock>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
+                                    <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Rating:</TextBlock>
+                                    <TextBlock x:Name="DetailPageRating" FontSize="24">Rating stub</TextBlock>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
+                                    <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Total chapters:</TextBlock>
+                                    <TextBlock x:Name="DetailPageTotalChapters" FontSize="24">Chapter count stub</TextBlock>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
+                                    <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Last Update Time:</TextBlock>
+                                    <TextBlock x:Name="DetailPageLastUpdateTime" FontSize="24">LUT stub</TextBlock>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Padding="5,5,5,5">
+                                    <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,15,0">Your progress:</TextBlock>
+                                    <TextBlock x:Name="DetailPageProgress" FontSize="24">LUT stub</TextBlock>
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical" Padding="5,5,5,5" Margin="0,5,0,0">
+                                    <Button x:Name="DetailPageReadBookButton" Width="200" Height="40"
                                     Style="{StaticResource AccentButtonStyle}" FontSize="20" 
                                         FontWeight="Normal" Margin="0,0,15,0" 
                                         VerticalAlignment="Top" 
                                         Click="DetailPageReadBookButton_Click">
-                                    Continue reading
-                                </Button>
-                                <StackPanel x:Name="DetailPageLoadingGrid" 
+                                        Continue reading
+                                    </Button>
+                                    <StackPanel x:Name="DetailPageLoadingGrid" 
                                             Margin="0,10,10,10"
                                             Orientation="Horizontal" VerticalAlignment="Center">
-                                    <muxc:ProgressRing Margin="0,0,10,0"></muxc:ProgressRing>
-                                    <TextBlock x:Name="DetailPageLoadingStatus" FontSize="20" VerticalAlignment="Center">Loading your book...</TextBlock>
+                                        <muxc:ProgressRing Margin="0,0,10,0"></muxc:ProgressRing>
+                                        <TextBlock x:Name="DetailPageLoadingStatus" FontSize="20" VerticalAlignment="Center">Loading your book...</TextBlock>
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
-                        </StackPanel>
+                            
+                        </Grid>
                     </Grid>
-                </Grid>
-            </ScrollViewer>
+                </ScrollViewer>
+                <Button HorizontalAlignment="Right" 
+                                          VerticalAlignment="Top" 
+                                          Margin="0,15,15,0" 
+                                          Click="AppBarButton_Click"
+                                          Width="40" Height="40" FontSize="12">
+                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE10A;" />
+                </Button>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

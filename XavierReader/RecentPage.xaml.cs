@@ -357,5 +357,10 @@ namespace XavierReader
                 SmokeGridContent.Height = e.NewSize.Height * 0.6;
             }
         }
+
+        private void AppBarButton_Click(object sender, RoutedEventArgs e)
+        {
+            SmokeGrid.Visibility = Visibility.Collapsed;
+        }
     }
 }
