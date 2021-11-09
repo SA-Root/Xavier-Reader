@@ -93,8 +93,7 @@
                         <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="0,5,0,5" Height="24">Contents:</TextBlock>
                         <ScrollViewer x:Name="SideScroller" VerticalScrollMode="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="5000" Height="300">
                             <ListView x:Name="SideContents"
-                                      SingleSelectionFollowsFocus="True" 
-                                      ItemClick="SideContents_ItemClick">
+                                      SingleSelectionFollowsFocus="True" SelectionChanged="SideContents_SelectionChanged">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="x:String">
                                         <TextBlock Text="{x:Bind}"
@@ -128,7 +127,7 @@
                       Background="{ThemeResource SystemControlAcrylicWindowBrush}" 
                       Width="330" Height="150">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <muxc:ProgressRing Width="60" Height="60" Margin="15,0,0,0"></muxc:ProgressRing>
+                    <muxc:ProgressRing Width="50" Height="50" Margin="15,0,0,0"></muxc:ProgressRing>
                     <TextBlock x:Name="LoadingText" FontWeight="Bold" FontSize="20" 
                                VerticalAlignment="Center" Margin="15,0,0,0"></TextBlock>
                 </StackPanel>

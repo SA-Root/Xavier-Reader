@@ -25,7 +25,11 @@
                 <ScrollViewer.Content>
                     <TextBlock xml:space="preserve" Padding="10,10,10,10" FontSize="16" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch" TextWrapping="WrapWholeWords" 
                                VerticalAlignment="Stretch"
-                               >Version 2.3.105:
+                               >Version 2.3.107:
+    Update to WinUI 2.8 preview
+    Update to Windows 11 SDK
+                        
+Version 2.3.105:
     Tweaks some UI impl
                         
 Version 2.3.102:

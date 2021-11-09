@@ -479,9 +479,10 @@ namespace XavierReader
             RecentPage.OpenRecentBookEvent -= OpenRecentBook;
             Window.Current.SizeChanged -= CurrentWindow_SizeChanged;
         }
-        private async void SideContents_ItemClick(object sender, ItemClickEventArgs e)
+
+        private async void SideContents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (SideContents.SelectedIndex >= 0 && ChangeChapterEvent != null)
+            if (splitView.IsPaneOpen && SideContents.SelectedIndex >= 0 && ChangeChapterEvent != null)
             {
                 CurrentChapter = SideContents.SelectedIndex;
                 if (CurrentBook.LoadMode == EpubLoadMode.PerChapter)
