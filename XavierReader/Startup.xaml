@@ -70,10 +70,10 @@
             </AppBarButton>
         </CommandBar>
         <SplitView x:Name="splitView" 
-            PaneBackground="{ThemeResource SystemControlBackgroundAccentBrush}"
+            PaneBackground="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
                    IsPaneOpen="False" 
-                   OpenPaneLength="300" 
-                   CompactPaneLength="48" 
+                   OpenPaneLength="350" 
+                   CompactPaneLength="100" 
                    DisplayMode="Overlay" 
                    Grid.Row="1">
             <SplitView.Pane>
