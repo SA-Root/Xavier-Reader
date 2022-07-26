@@ -70,7 +70,7 @@
             </AppBarButton>
         </CommandBar>
         <SplitView x:Name="splitView" 
-            PaneBackground="{ThemeResource SystemControlAcrylicWindowBrush}"
+            PaneBackground="{ThemeResource SystemControlBackgroundAccentBrush}"
                    IsPaneOpen="False" 
                    OpenPaneLength="300" 
                    CompactPaneLength="48" 
