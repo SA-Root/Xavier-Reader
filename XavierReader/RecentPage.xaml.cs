@@ -86,7 +86,7 @@ namespace XavierReader
             {
                 foreach (var f in dir.GetDirectories())
                 {
-                    if(Directory.Exists(f.FullName + "/cover_image.jpg"))
+                    if(File.Exists(f.FullName + "/cover_image.jpg"))
                     {
                         var bi = new BookImage
                         {

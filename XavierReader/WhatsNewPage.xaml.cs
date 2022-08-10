@@ -30,7 +30,7 @@ namespace XavierReader
     /// </summary>
     public sealed partial class WhatsNewPage : Page
     {
-        private string Version = "Version: 2.4.112";
+        private string Version = "Version: 2.4.113";
         public WhatsNewPage()
         {
             this.InitializeComponent();
