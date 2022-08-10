@@ -86,15 +86,30 @@ namespace XavierReader
             {
                 foreach (var f in dir.GetDirectories())
                 {
-                    var bi = new BookImage
+                    if(Directory.Exists(f.FullName + "/cover_image.jpg"))
                     {
-                        ImageLocation = f.FullName + "/cover_image.jpg",
-                        TmpFolderName = f.Name
-                    };
-                    bi.Settings = new BookSettings(bi.TmpFolderName);
-                    bi.Settings.LoadSettings();
-                    bi.Progress = (bi.Settings.CurrentChapter + bi.Settings.ChapterProgress) / bi.Settings.Chapters * 100.0;
-                    AllBooks.Add(bi);
+                        var bi = new BookImage
+                        {
+                            ImageLocation = f.FullName + "/cover_image.jpg",
+                            TmpFolderName = f.Name
+                        };
+                        bi.Settings = new BookSettings(bi.TmpFolderName);
+                        bi.Settings.LoadSettings();
+                        bi.Progress = (bi.Settings.CurrentChapter + bi.Settings.ChapterProgress) / bi.Settings.Chapters * 100.0;
+                        AllBooks.Add(bi);
+                    }
+                    else
+                    {
+                        var bi = new BookImage
+                        {
+                            ImageLocation = f.FullName + "/cover.jpeg",
+                            TmpFolderName = f.Name
+                        };
+                        bi.Settings = new BookSettings(bi.TmpFolderName);
+                        bi.Settings.LoadSettings();
+                        bi.Progress = (bi.Settings.CurrentChapter + bi.Settings.ChapterProgress) / bi.Settings.Chapters * 100.0;
+                        AllBooks.Add(bi);
+                    }
                 }
                 var t = AllBooks.OrderByDescending(item => item.Settings.LastReadTime);
 

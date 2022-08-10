@@ -438,6 +438,48 @@ namespace XavierReader
                     AddTextBlock(t.InnerText, NodeType.li, B1, B2, cnt);
                     ++cnt;
                 }
+                var ps = body.SelectNodes(".//ns:p", nsMgr);
+                foreach (XmlNode p in ps)
+                {
+                    //extract single 'p'
+                    var par1 = new Paragraph();
+                    var par2 = new Paragraph();
+                    //plain text is a node
+                    foreach (XmlNode pc in p.ChildNodes)
+                    {
+                        if (pc.HasChildNodes)
+                        {
+                            switch (pc.Name)
+                            {
+                                case "strong":
+                                case "b":
+                                    AddTextBlock(pc.InnerText, NodeType.b, B1, B2, 0, par1, par2);
+                                    break;
+                                case "i":
+                                    AddTextBlock(pc.InnerText, NodeType.i, B1, B2, 0, par1, par2);
+                                    break;
+                                default:
+                                    AddTextBlock(pc.InnerText, NodeType.text, B1, B2, 0, par1, par2);
+                                    break;
+                            }
+                        }
+                        else //'p' only has plain text or pc is 'br'
+                        {
+                            if (pc.Name == "br")
+                            {
+                                AddTextBlock("", NodeType.br, B1, B2, 0, par1, par2);
+                            }
+                            else
+                            {
+                                AddTextBlock(pc.InnerText, NodeType.text, B1, B2, 0, par1, par2);
+                            }
+                        }
+                    }
+                    //add a paragraph line break
+                    AddTextBlock("", NodeType.br, B1, B2, 0, par1, par2);
+                    B1.Add(par1);
+                    B2.Add(par2);
+                }
             }
             if (LoadMode == EpubLoadMode.Full)
             {

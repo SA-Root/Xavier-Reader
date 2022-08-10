@@ -25,7 +25,10 @@
                 <ScrollViewer.Content>
                     <TextBlock xml:space="preserve" Padding="10,10,10,10" FontSize="16" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch" TextWrapping="WrapWholeWords" 
                                VerticalAlignment="Stretch"
-                               >Version 2.3.109:
+                               >Version 2.4.112:
+    Emergent fix for HTML parser and Cover image path
+                        
+Version 2.3.109:
     Updated to WinUI 2.8
     System Requirement is now Windows 11 and later
     Visual Update for BookInfo Panel 
